@@ -3,7 +3,6 @@ import os
 from binance.client import Client
 from IPython.display import clear_output
 
-from display import show_candlestick_with_plotly
 from marketdata import MarketData
 from mock.mock_client import MockClient
 from profitability import get_impact
@@ -13,6 +12,8 @@ from utils import date_to_mili_timestamp
 from indicators.macd_indicator import MacdIndicator
 from indicators.rsi_indicator import RsiIndicator
 from indicators.stochastic_indicator import StochasticIndicator
+from indicators.sma7_indicator import Sma7Indicator
+from indicators.sma20_indicator import Sma20Indicator
 
 if __name__ == "__main__":
     logging.info("Let's start dat shit")
@@ -62,6 +63,7 @@ if __name__ == "__main__":
         end_str=history_stop_timestamp,
     )
 
+    # INDICATORS
     rsi_indicator = RsiIndicator(
         rsi_window=rsi_window, rsi_buying_trigger=30, rsi_selling_trigger=70
     )
@@ -79,6 +81,9 @@ if __name__ == "__main__":
         stoch_limits=stoch_limits,
     )
 
+    sma7_indicator = Sma7Indicator()
+    sma20_indicator = Sma20Indicator()
+
     simu_market_data = MarketData(
         symbol=symbol,
         interval=interval,
@@ -86,7 +91,13 @@ if __name__ == "__main__":
         start_str=simu_market_start_timestamp,
         end_str=simu_market_stop_timestamp,
         client=client,
-        indicators=[rsi_indicator, macd_indicator, stochastic_indicator],
+        indicators=[
+            rsi_indicator,
+            macd_indicator,
+            stochastic_indicator,
+            sma7_indicator,
+            sma20_indicator,
+        ],
         stop_limit_percentage=stop_limit_percentage,
         stop_loss_percentage=stop_loss_percentage,
     )
@@ -110,4 +121,4 @@ if __name__ == "__main__":
     # print(f"Impact: {impact} %")
 
     df = simu_market_data.df
-    show_candlestick_with_plotly(df)
+    simu_market_data.show_candlestick_with_plotly()

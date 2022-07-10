@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from pandas import DataFrame
+from plotly.graph_objects import Scatter
 
 
 class Indicator(ABC):
@@ -33,3 +34,21 @@ class Indicator(ABC):
         :return: bool
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def get_plot_scatter(self, df) -> Scatter:
+        """
+        Returns the Scatter to be added to main graph
+        :return: Scatter
+        """
+        raise NotImplementedError
+
+    # sma = Scatter(
+    #     x=self.df.index,
+    #     y=self.df["Close"].rolling(i).mean(),  # Pandas SMA
+    #     name="SMA" + str(i),
+    #     mode="line",
+    #     line=dict(color="#3E86AB"),
+    #     opacity=0.7,
+    #     visible=False,
+    # )

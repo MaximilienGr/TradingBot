@@ -1,9 +1,9 @@
 import ta
 
-from . import indicator
+from .indicator import Indicator
 
 
-class MacdIndicator(indicator.Indicator):
+class MacdIndicator(Indicator):
     def __init__(self, macd_window_slow, macd_window_fast, macd_window_sign, **kwargs):
         super().__init__(**kwargs)
         self.macd_window_slow = macd_window_slow
@@ -28,3 +28,6 @@ class MacdIndicator(indicator.Indicator):
         if df["MACD"].iloc[-1] < 0:
             return True
         return False
+
+    def get_plot_scatter(self, df):
+        return None

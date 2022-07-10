@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 from binance import Client
+from dash import Output, Input, State, dcc, html, Dash
+import plotly.graph_objects as go
 
 from indicators.indicator import Indicator
 
@@ -107,9 +109,125 @@ class MarketData:
 
         should_sell = False
         for indicator in self.indicators:
-            if indicator.should_sell(df=self.df):
-                breakpoint()
             should_sell = indicator.should_sell(df=self.df) and should_sell
 
         self.df["Buy"] = should_buy
         self.df["Sell"] = should_sell
+
+    def show_candlestick_with_plotly(self):
+
+        data = [
+            go.Candlestick(
+                x=self.df["Timestamp"],
+                open=self.df["Open"],
+                high=self.df["High"],
+                low=self.df["Low"],
+                close=self.df["Close"],
+            ),
+            go.Scatter(
+                x=self.df["Timestamp"][self.df["Bought"] == 1],
+                y=self.df["Open"][self.df["Bought"] == 1],
+                mode="markers",
+                marker_symbol="arrow-up",
+                marker_size=10,
+                marker_color="green",
+                name="Buying position",
+            ),
+            go.Scatter(
+                x=self.df["Timestamp"][self.df["Sell"] == 1],
+                y=self.df["Open"][self.df["Sell"] == 1],
+                mode="markers",
+                marker_symbol="arrow-down",
+                marker_size=10,
+                marker_color="red",
+                name="Selling position",
+            ),
+        ]
+        for i in self.indicators:
+            if scatter := i.get_plot_scatter(self.df):
+                data.append(scatter)
+
+        graph_candlestick = go.Figure(
+            data=data,
+            layout=dict(
+                hovermode="x", showlegend=True, xaxis=dict(rangeslider_visible=False)
+            ),
+        )
+
+        ################################################################################################
+        # Here to make the vertical scaling automatic when zooming
+        ################################################################################################
+
+        app = Dash()
+
+        app.layout = html.Div(
+            html.Div(
+                [
+                    dcc.Graph(
+                        id="graph_candlestick",
+                        figure=graph_candlestick,
+                        style=dict(height=600, width=1300),
+                    )
+                ]
+            )
+        )
+
+        # Server side implementation (slow)
+        @app.callback(
+            Output("graph_candlestick", "figure"),
+            [Input("graph_candlestick", "relayoutData")],
+            [State("graph_candlestick", "figure")],
+        )
+        def update_result(relOut, Fig):
+
+            if relOut is None:
+                return Fig
+
+            # if you don't use the rangeslider to adjust the plot, then relOut.keys() won't include the key xaxis.range
+            elif "xaxis.range[0]" not in relOut.keys():
+                newLayout = go.Layout(
+                    height=600,
+                    width=1300,
+                    showlegend=True,
+                    xaxis=dict(rangeslider_visible=False),
+                    yaxis=dict(autorange=True),
+                    hovermode="x",
+                    template="plotly",
+                )
+
+                Fig["layout"] = newLayout
+                return Fig
+
+            else:
+                ymin = self.df.loc[
+                    self.df["Timestamp"].between(
+                        relOut["xaxis.range[0]"], relOut["xaxis.range[1]"]
+                    ),
+                    "Low",
+                ].min()
+                ymax = self.df.loc[
+                    self.df["Timestamp"].between(
+                        relOut["xaxis.range[0]"], relOut["xaxis.range[1]"]
+                    ),
+                    "High",
+                ].max()
+
+                newLayout = go.Layout(
+                    height=600,
+                    width=1300,
+                    showlegend=True,
+                    xaxis=dict(
+                        rangeslider_visible=False,
+                        range=[relOut["xaxis.range[0]"], relOut["xaxis.range[1]"]],
+                    ),
+                    yaxis=dict(range=[ymin, ymax]),
+                    hovermode="x",
+                    template="plotly",
+                )
+
+                Fig["layout"] = newLayout
+                return Fig
+
+        app.run_server(debug=True, port=1101)
+        ################################################################################################
+        # graph_candlestick.show()

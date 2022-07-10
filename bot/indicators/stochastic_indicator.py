@@ -2,10 +2,10 @@ import numpy as np
 import pandas as pd
 import ta
 
-from . import indicator
+from .indicator import Indicator
 
 
-class StochasticIndicator(indicator.Indicator):
+class StochasticIndicator(Indicator):
     def __init__(self, lags, stoch_window, stoch_smooth_window, stoch_limits, **kwargs):
         super().__init__(**kwargs)
         self.lags = lags
@@ -80,6 +80,8 @@ class StochasticIndicator(indicator.Indicator):
         return (stoch_trigger_indicator | stoch_cross_trigger_indicator)[-1]
 
     def should_sell(self, df):
+
+        # TODO: ca renvoit toujours False... Pourquoi ?
         stoch_trigger_indicator = (
             df["stoch_buying_trigger"]
             & df["%K"].between(self.stoch_limits[0], self.stoch_limits[1])
@@ -90,3 +92,6 @@ class StochasticIndicator(indicator.Indicator):
             df["%K"] < df["%D"]
         )
         return (stoch_trigger_indicator | stoch_cross_trigger_indicator)[-1]
+
+    def get_plot_scatter(self, df):
+        return None

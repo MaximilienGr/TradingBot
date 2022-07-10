@@ -1,9 +1,9 @@
 import ta
 
-from . import indicator
+from .indicator import Indicator
 
 
-class RsiIndicator(indicator.Indicator):
+class RsiIndicator(Indicator):
     def __init__(self, rsi_window, rsi_buying_trigger, rsi_selling_trigger, **kwargs):
         super().__init__(**kwargs)
         self.rsi_window = rsi_window
@@ -24,3 +24,6 @@ class RsiIndicator(indicator.Indicator):
         if df["RSI"].iloc[-1] < self.rsi_selling_trigger:
             return True
         return False
+
+    def get_plot_scatter(self, df):
+        return None
