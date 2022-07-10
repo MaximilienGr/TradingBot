@@ -14,6 +14,9 @@ from indicators.rsi_indicator import RsiIndicator
 from indicators.stochastic_indicator import StochasticIndicator
 from indicators.sma7_indicator import Sma7Indicator
 from indicators.sma20_indicator import Sma20Indicator
+from indicators.sma50_indicator import Sma50Indicator
+from indicators.sma100_indicator import Sma100Indicator
+from indicators.sma200_indicator import Sma200Indicator
 
 if __name__ == "__main__":
     logging.info("Let's start dat shit")
@@ -29,7 +32,8 @@ if __name__ == "__main__":
     stop_limit_percentage = 0.999
     stop_loss_percentage = 1.005
     rsi_window = 14
-    rsi_trigger = 30
+    rsi_buying_trigger = 30
+    rsi_selling_trigger = 70
     macd_window_slow = 26
     macd_window_fast = 12
     macd_window_sign = 9
@@ -48,13 +52,13 @@ if __name__ == "__main__":
 
     # Candle size
     interval = Client.KLINE_INTERVAL_1MINUTE
-    simu_market_start_timestamp = date_to_mili_timestamp("19.06.2022 02:00:00")
+    simu_market_start_timestamp = date_to_mili_timestamp("09.07.2022 00:00:00")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
-    simu_market_stop_timestamp = date_to_mili_timestamp("19.06.2022 04:00:00")
+    simu_market_stop_timestamp = date_to_mili_timestamp("09.07.2022 04:00:00")
 
     # history_start_timestamp needs to start 1 interval right after the end of simu_market
-    history_start_timestamp = date_to_mili_timestamp("19.06.2022 04:01:00")
-    history_stop_timestamp = date_to_mili_timestamp("19.06.2022 05:00:00")
+    history_start_timestamp = date_to_mili_timestamp("09.07.2022 04:01:00")
+    history_stop_timestamp = date_to_mili_timestamp("09.07.2022 05:00:00")
 
     market_data_history = client.get_historical_klines(
         symbol=symbol,
@@ -65,7 +69,9 @@ if __name__ == "__main__":
 
     # INDICATORS
     rsi_indicator = RsiIndicator(
-        rsi_window=rsi_window, rsi_buying_trigger=30, rsi_selling_trigger=70
+        rsi_window=rsi_window,
+        rsi_buying_trigger=rsi_buying_trigger,
+        rsi_selling_trigger=rsi_selling_trigger,
     )
 
     macd_indicator = MacdIndicator(
@@ -83,6 +89,9 @@ if __name__ == "__main__":
 
     sma7_indicator = Sma7Indicator()
     sma20_indicator = Sma20Indicator()
+    sma50_indicator = Sma50Indicator()
+    sma100_indicator = Sma100Indicator()
+    sma200_indicator = Sma200Indicator()
 
     simu_market_data = MarketData(
         symbol=symbol,
@@ -93,10 +102,13 @@ if __name__ == "__main__":
         client=client,
         indicators=[
             rsi_indicator,
-            # macd_indicator,
-            # stochastic_indicator,
-            # sma7_indicator,
-            # sma20_indicator,
+            macd_indicator,
+            stochastic_indicator,
+            sma7_indicator,
+            sma20_indicator,
+            sma50_indicator,
+            sma100_indicator,
+            sma200_indicator,
         ],
         stop_limit_percentage=stop_limit_percentage,
         stop_loss_percentage=stop_loss_percentage,
@@ -106,7 +118,6 @@ if __name__ == "__main__":
     simu_market_data.client = mock_client
 
     while len(market_data_history) > 1:
-        clear_output(wait=True)
         strategy_testing(
             market_data=simu_market_data,
             market_data_history=market_data_history,
@@ -114,11 +125,12 @@ if __name__ == "__main__":
         )
         simu_market_data.update_data()
 
-    # assert (simu_market_data.df.Bought.sum() - simu_market_data.df.Sell.sum()) in [0, 1]
+    assert (
+        simu_market_data.df["Bought"].sum() - simu_market_data.df["Sold"].sum()
+    ) in [0, 1], "Buy/Sell mismatch O_o"
 
-    # show_candlestick(simu_market_data.df[-3:])
-    # impact = float("%.2f" % get_impact(simu_market_data.df))
-    # print(f"Impact: {impact} %")
+    impact = float("%.2f" % get_impact(simu_market_data.df))
+    print(f"Impact: {impact} %")
 
     df = simu_market_data.df
     simu_market_data.show_candlestick_with_plotly()

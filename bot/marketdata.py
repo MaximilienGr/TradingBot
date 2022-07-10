@@ -137,8 +137,8 @@ class MarketData:
                 name="Buying position",
             ),
             go.Scatter(
-                x=self.df["Date"][self.df["Sell"] == 1],
-                y=self.df["Open"][self.df["Sell"] == 1],
+                x=self.df["Date"][self.df["Sold"] == 1],
+                y=self.df["Open"][self.df["Sold"] == 1],
                 mode="markers",
                 marker_symbol="arrow-down",
                 marker_size=10,
