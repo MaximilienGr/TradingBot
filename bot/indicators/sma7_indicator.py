@@ -18,7 +18,7 @@ class Sma7Indicator(Indicator):
 
     def get_plot_scatter(self, df) -> go.Scatter:
         return go.Scatter(
-            x=df["Timestamp"],
+            x=df["Date"],
             y=df["SMA7"],
             name="SMA7",
             line=dict(color="#3E86AB"),

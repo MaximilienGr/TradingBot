@@ -21,7 +21,7 @@ class RsiIndicator(Indicator):
         return False
 
     def should_sell(self, df):
-        if df["RSI"].iloc[-1] < self.rsi_selling_trigger:
+        if df["RSI"].iloc[-1] > self.rsi_selling_trigger:
             return True
         return False
 

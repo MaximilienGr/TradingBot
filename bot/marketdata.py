@@ -3,6 +3,7 @@ import pandas as pd
 from binance import Client
 from dash import Output, Input, State, dcc, html, Dash
 import plotly.graph_objects as go
+from pandas import Timestamp
 
 from indicators.indicator import Indicator
 
@@ -69,11 +70,13 @@ class MarketData:
         frame = frame.iloc[:, :6]
         frame.columns = ["Time", "Open", "High", "Low", "Close", "Volume"]
         frame["Timestamp"] = frame["Time"]
-        frame = frame.set_index("Time")
-        frame.index = pd.to_datetime(frame.index, unit="ms")
         frame[["%K", "%D", "RSI", "MACD"]] = np.nan
         frame[["Buy", "Bought", "Sell"]] = 0
-        return frame.astype(float)
+        frame = frame.set_index("Time")
+        frame.index = pd.to_datetime(frame.index, unit="ms")
+        frame = frame.astype(float)
+        frame["Date"] = pd.to_datetime(frame["Timestamp"], unit="ms")
+        return frame
 
     def update_data(self):
         """Get the new line for the latest candle, concatenate it with the rest and apply_technicals to it"""
@@ -103,11 +106,11 @@ class MarketData:
         'Sell': decision to sell or not.
         Is needed to buy to have all the indicators sending True
         """
-        should_buy = False
+        should_buy = True
         for indicator in self.indicators:
             should_buy = indicator.should_buy(df=self.df) and should_buy
 
-        should_sell = False
+        should_sell = True
         for indicator in self.indicators:
             should_sell = indicator.should_sell(df=self.df) and should_sell
 
@@ -118,14 +121,14 @@ class MarketData:
 
         data = [
             go.Candlestick(
-                x=self.df["Timestamp"],
+                x=self.df["Date"],
                 open=self.df["Open"],
                 high=self.df["High"],
                 low=self.df["Low"],
                 close=self.df["Close"],
             ),
             go.Scatter(
-                x=self.df["Timestamp"][self.df["Bought"] == 1],
+                x=self.df["Date"][self.df["Bought"] == 1],
                 y=self.df["Open"][self.df["Bought"] == 1],
                 mode="markers",
                 marker_symbol="arrow-up",
@@ -134,7 +137,7 @@ class MarketData:
                 name="Buying position",
             ),
             go.Scatter(
-                x=self.df["Timestamp"][self.df["Sell"] == 1],
+                x=self.df["Date"][self.df["Sell"] == 1],
                 y=self.df["Open"][self.df["Sell"] == 1],
                 mode="markers",
                 marker_symbol="arrow-down",
@@ -200,14 +203,18 @@ class MarketData:
 
             else:
                 ymin = self.df.loc[
-                    self.df["Timestamp"].between(
-                        relOut["xaxis.range[0]"], relOut["xaxis.range[1]"]
+                    self.df["Date"].between(
+                        left=Timestamp(relOut["xaxis.range[0]"]),
+                        right=Timestamp(relOut["xaxis.range[1]"]),
+                        inclusive="neither",
                     ),
                     "Low",
                 ].min()
                 ymax = self.df.loc[
-                    self.df["Timestamp"].between(
-                        relOut["xaxis.range[0]"], relOut["xaxis.range[1]"]
+                    self.df["Date"].between(
+                        left=Timestamp(relOut["xaxis.range[0]"]),
+                        right=Timestamp(relOut["xaxis.range[1]"]),
+                        inclusive="neither",
                     ),
                     "High",
                 ].max()
@@ -218,7 +225,10 @@ class MarketData:
                     showlegend=True,
                     xaxis=dict(
                         rangeslider_visible=False,
-                        range=[relOut["xaxis.range[0]"], relOut["xaxis.range[1]"]],
+                        range=[
+                            Timestamp(relOut["xaxis.range[0]"]),
+                            Timestamp(relOut["xaxis.range[1]"]),
+                        ],
                     ),
                     yaxis=dict(range=[ymin, ymax]),
                     hovermode="x",
