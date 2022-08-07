@@ -24,4 +24,4 @@ flake8 = "*"
 python_version = "3.10"
 
 [scripts]
-main = "python ./bot/trading_bot.py"
+main = "python ./trading_bot.py"

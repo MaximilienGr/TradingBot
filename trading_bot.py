@@ -1,22 +1,18 @@
 import logging
 import os
 from binance.client import Client
-from IPython.display import clear_output
 
-from marketdata import MarketData
-from mock.mock_client import MockClient
-from profitability import get_impact
-from strategy import strategy_testing
-from utils import date_to_mili_timestamp
+from bot.marketdata import MarketData
+from bot.mock.mock_client import MockClient
+from bot.profitability import get_impact
+from bot.strategy import strategy_testing
+from bot.utils import date_to_mili_timestamp
 
-from indicators.macd_indicator import MacdIndicator
-from indicators.rsi_indicator import RsiIndicator
-from indicators.stochastic_indicator import StochasticIndicator
-from indicators.sma7_indicator import Sma7Indicator
-from indicators.sma20_indicator import Sma20Indicator
-from indicators.sma50_indicator import Sma50Indicator
-from indicators.sma100_indicator import Sma100Indicator
-from indicators.sma200_indicator import Sma200Indicator
+from bot.indicators.macd_indicator import MacdIndicator
+from bot.indicators.rsi_indicator import RsiIndicator
+from bot.indicators.stochastic_indicator import StochasticIndicator
+from bot.indicators.sma9_21_indicator import Sma9_21Indicator
+from bot.indicators.sma_indicator import SmaIndicator
 
 if __name__ == "__main__":
     logging.info("Let's start dat shit")
@@ -87,11 +83,14 @@ if __name__ == "__main__":
         stoch_limits=stoch_limits,
     )
 
-    sma7_indicator = Sma7Indicator()
-    sma20_indicator = Sma20Indicator()
-    sma50_indicator = Sma50Indicator()
-    sma100_indicator = Sma100Indicator()
-    sma200_indicator = Sma200Indicator()
+    sma9_21_indicator = Sma9_21Indicator()
+
+    sma7_indicator = SmaIndicator(7)
+    sma9_indicator = SmaIndicator(9)
+    sma20_indicator = SmaIndicator(20)
+    sma50_indicator = SmaIndicator(50)
+    sma100_indicator = SmaIndicator(100)
+    sma200_indicator = SmaIndicator(200)
 
     simu_market_data = MarketData(
         symbol=symbol,
@@ -102,13 +101,15 @@ if __name__ == "__main__":
         client=client,
         indicators=[
             rsi_indicator,
-            macd_indicator,
-            stochastic_indicator,
-            sma7_indicator,
-            sma20_indicator,
-            sma50_indicator,
-            sma100_indicator,
-            sma200_indicator,
+            # macd_indicator,
+            # stochastic_indicator,
+            # sma7_indicator,
+            # sma9_indicator,
+            # sma20_indicator,
+            sma9_21_indicator,
+            # sma50_indicator,
+            # sma100_indicator,
+            # sma200_indicator,
         ],
         stop_limit_percentage=stop_limit_percentage,
         stop_loss_percentage=stop_loss_percentage,

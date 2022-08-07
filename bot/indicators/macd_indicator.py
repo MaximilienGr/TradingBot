@@ -1,6 +1,7 @@
 import ta
+from plotly.graph_objs import Scatter
 
-from .indicator import Indicator
+from bot.indicators.indicator import Indicator
 
 
 class MacdIndicator(Indicator):
@@ -29,5 +30,5 @@ class MacdIndicator(Indicator):
             return True
         return False
 
-    def get_plot_scatter(self, df):
-        return None
+    def get_plot_scatters(self, df) -> list[Scatter]:
+        return []

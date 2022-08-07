@@ -36,7 +36,7 @@ class Indicator(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_plot_scatter(self, df) -> Scatter:
+    def get_plot_scatters(self, df) -> list[Scatter]:
         """
         Returns the Scatter to be added to main graph
         :return: Scatter

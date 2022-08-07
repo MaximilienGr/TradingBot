@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 import ta
+from plotly.graph_objs import Scatter
 
-from .indicator import Indicator
+from bot.indicators.indicator import Indicator
 
 
 class StochasticIndicator(Indicator):
@@ -93,5 +94,5 @@ class StochasticIndicator(Indicator):
         )
         return (stoch_trigger_indicator | stoch_cross_trigger_indicator)[-1]
 
-    def get_plot_scatter(self, df):
-        return None
+    def get_plot_scatters(self, df) -> list[Scatter]:
+        return []

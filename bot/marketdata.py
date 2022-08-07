@@ -5,7 +5,7 @@ from dash import Output, Input, State, dcc, html, Dash
 import plotly.graph_objects as go
 from pandas import Timestamp
 
-from indicators.indicator import Indicator
+from bot.indicators.indicator import Indicator
 
 
 class MarketData:
@@ -147,7 +147,7 @@ class MarketData:
             ),
         ]
         for i in self.indicators:
-            if scatter := i.get_plot_scatter(self.df):
+            for scatter in i.get_plot_scatters(self.df):
                 data.append(scatter)
 
         graph_candlestick = go.Figure(
