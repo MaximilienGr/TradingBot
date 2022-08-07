@@ -48,11 +48,12 @@ class MarketData:
         return bool(self.df.Buy.iloc[-1])
 
     def should_sell(self, buy_price):
+        indicators_decision = bool(self.df.Sell.iloc[-1])
         stop_loss_activated = self.df.Close[-1] <= buy_price * self.stop_loss_percentage
         stop_limit_activated = (
             self.df.Close[-1] >= buy_price * self.stop_limit_percentage
         )
-        return stop_loss_activated or stop_limit_activated
+        return stop_loss_activated or stop_limit_activated or indicators_decision
 
     def _get_data(self, start_str, end_str):
         """Get all data from binance

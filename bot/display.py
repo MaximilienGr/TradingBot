@@ -41,7 +41,7 @@ def show_candlestick(df, width=4, width2=0.5):
     )
 
     # define the moments of selling
-    sell_dates = df.index[df["Sell"] == 1]
+    sell_dates = df.index[df["Sold"] == 1]
     sell_prices = df.Open[sell_dates].reset_index()
 
     # plot the selling moments
