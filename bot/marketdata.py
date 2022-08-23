@@ -71,8 +71,7 @@ class MarketData:
         frame = frame.iloc[:, :6]
         frame.columns = ["Time", "Open", "High", "Low", "Close", "Volume"]
         frame["Timestamp"] = frame["Time"]
-        frame[["%K", "%D", "RSI", "MACD"]] = np.nan
-        frame[["Buy", "Bought", "Sell"]] = 0
+        frame[["Buy", "Bought", "Sell", "Sold"]] = 0
         frame = frame.set_index("Time")
         frame.index = pd.to_datetime(frame.index, unit="ms")
         frame = frame.astype(float)

@@ -27,15 +27,15 @@ if __name__ == "__main__":
 
     stop_loss_percentage = 0.95
     stop_limit_percentage = 2
-    rsi_window = 14
-    rsi_buying_trigger = 30
-    rsi_selling_trigger = 70
-    macd_window_slow = 26
-    macd_window_fast = 12
-    macd_window_sign = 9
-    stoch_window = 14
-    stoch_smooth_window = 3
-    stoch_limits = [20, 80]
+    # rsi_window = 14
+    # rsi_buying_trigger = 30
+    # rsi_selling_trigger = 70
+    # macd_window_slow = 26
+    # macd_window_fast = 12
+    # macd_window_sign = 9
+    # stoch_window = 14
+    # stoch_smooth_window = 3
+    # stoch_limits = [20, 80]
 
     # # Candle size
     # interval = Client.KLINE_INTERVAL_1WEEK
@@ -48,13 +48,13 @@ if __name__ == "__main__":
 
     # Candle size
     interval = Client.KLINE_INTERVAL_4HOUR
-    simu_market_start_timestamp = date_to_mili_timestamp("03.07.2022 00:00:00")
+    simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
-    simu_market_stop_timestamp = date_to_mili_timestamp("09.07.2022 04:00:00")
+    simu_market_stop_timestamp = date_to_mili_timestamp("09.01.2022 04:00:00")
 
     # history_start_timestamp needs to start 1 interval right after the end of simu_market
-    history_start_timestamp = date_to_mili_timestamp("09.07.2022 08:00:00")
-    history_stop_timestamp = date_to_mili_timestamp("06.08.2022 18:00:00")
+    history_start_timestamp = date_to_mili_timestamp("09.01.2022 08:00:00")
+    history_stop_timestamp = date_to_mili_timestamp("23.08.2022 18:00:00")
 
     market_data_history = client.get_historical_klines(
         symbol=symbol,
@@ -64,24 +64,24 @@ if __name__ == "__main__":
     )
 
     # INDICATORS
-    rsi_indicator = RsiIndicator(
-        rsi_window=rsi_window,
-        rsi_buying_trigger=rsi_buying_trigger,
-        rsi_selling_trigger=rsi_selling_trigger,
-    )
-
-    macd_indicator = MacdIndicator(
-        macd_window_slow=macd_window_slow,
-        macd_window_fast=macd_window_fast,
-        macd_window_sign=macd_window_sign,
-    )
-
-    stochastic_indicator = StochasticIndicator(
-        lags=lags,
-        stoch_window=stoch_window,
-        stoch_smooth_window=stoch_smooth_window,
-        stoch_limits=stoch_limits,
-    )
+    # rsi_indicator = RsiIndicator(
+    #     rsi_window=rsi_window,
+    #     rsi_buying_trigger=rsi_buying_trigger,
+    #     rsi_selling_trigger=rsi_selling_trigger,
+    # )
+    #
+    # macd_indicator = MacdIndicator(
+    #     macd_window_slow=macd_window_slow,
+    #     macd_window_fast=macd_window_fast,
+    #     macd_window_sign=macd_window_sign,
+    # )
+    #
+    # stochastic_indicator = StochasticIndicator(
+    #     lags=lags,
+    #     stoch_window=stoch_window,
+    #     stoch_smooth_window=stoch_smooth_window,
+    #     stoch_limits=stoch_limits,
+    # )
 
     sma9_21_indicator = Sma9_21Indicator()
 
@@ -123,8 +123,13 @@ if __name__ == "__main__":
         simu_market_data.df["Bought"].sum() - simu_market_data.df["Sold"].sum()
     ) in [0, 1], "Buy/Sell mismatch O_o"
 
-    impact = float("%.2f" % get_impact(simu_market_data.df))
-    print(f"Impact: {impact} %")
+    initial_investment = 1000
+    wallet = float("%.2f" % get_impact(simu_market_data.df, initial_investment))
+    rentability_percentage = 100 * (wallet - initial_investment) / initial_investment
+    print(
+        f"For an initial investment of {initial_investment} $: {wallet}."
+        f" --> {round(rentability_percentage, 2)} %"
+    )
 
     df = simu_market_data.df
     simu_market_data.show_candlestick_with_plotly()
