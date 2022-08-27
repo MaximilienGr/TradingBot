@@ -1,7 +1,10 @@
 import logging
 import os
+
 from binance.client import Client
 
+from bot.helpers.utils import load_market_data_history
+from bot.logging_formatter import logger
 from bot.marketdata import MarketData
 from bot.mock.mock_client import MockClient
 from bot.profitability import get_impact
@@ -14,12 +17,18 @@ from bot.indicators.stochastic_indicator import StochasticIndicator
 from bot.indicators.sma9_21_indicator import Sma9_21Indicator
 from bot.indicators.sma_indicator import SmaIndicator
 
+
 if __name__ == "__main__":
-    logging.info("Let's start dat shit")
+    logger.warning("Let's start dat shit: warning")
+    logger.debug("Let's start dat shit: debug")
+    logger.info("Let's start dat shit: info")  # green
+    logger.error("Let's start dat shit: error")  # red
+    logger.critical("Let's start dat shit: critical")
 
     binance_api_key = os.environ["BINANCE_API_KEY"]
     binance_secret_key = os.environ["BINANCE_SECRET_KEY"]
     client = Client(binance_api_key, binance_secret_key)
+
     # Which pair you want to trade
     symbol = "BTCUSDT"
     # Number of delay windows allowed to trigger a buy according to the stochastic indicator
@@ -56,11 +65,8 @@ if __name__ == "__main__":
     history_start_timestamp = date_to_mili_timestamp("09.01.2022 08:00:00")
     history_stop_timestamp = date_to_mili_timestamp("23.08.2022 18:00:00")
 
-    market_data_history = client.get_historical_klines(
-        symbol=symbol,
-        interval=interval,
-        start_str=history_start_timestamp,
-        end_str=history_stop_timestamp,
+    market_data_history = load_market_data_history(
+        client, symbol, interval, history_start_timestamp, history_stop_timestamp
     )
 
     # INDICATORS
@@ -120,7 +126,8 @@ if __name__ == "__main__":
         simu_market_data.update_data()
 
     assert (
-        simu_market_data.df["Bought"].sum() - simu_market_data.df["Sold"].sum()
+        simu_market_data.df["BuyingSignal"].sum()
+        - simu_market_data.df["SellingSignal"].sum()
     ) in [0, 1], "Buy/Sell mismatch O_o"
 
     initial_investment = 1000
@@ -132,4 +139,4 @@ if __name__ == "__main__":
     )
 
     df = simu_market_data.df
-    simu_market_data.show_candlestick_with_plotly()
+    # simu_market_data.show_candlestick_with_plotly()

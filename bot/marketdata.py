@@ -49,10 +49,13 @@ class MarketData:
 
     def should_sell(self, buy_price):
         indicators_decision = bool(self.df.Sell.iloc[-1])
+        # if buy position :
         stop_loss_activated = self.df.Close[-1] <= buy_price * self.stop_loss_percentage
         stop_limit_activated = (
             self.df.Close[-1] >= buy_price * self.stop_limit_percentage
         )
+        # if short position :
+        # do opposite
         return stop_loss_activated or stop_limit_activated or indicators_decision
 
     def _get_data(self, start_str, end_str):
@@ -71,7 +74,7 @@ class MarketData:
         frame = frame.iloc[:, :6]
         frame.columns = ["Time", "Open", "High", "Low", "Close", "Volume"]
         frame["Timestamp"] = frame["Time"]
-        frame[["Buy", "Bought", "Sell", "Sold"]] = 0
+        frame[["Buy", "BuyingSignal", "Sell", "SellingSignal"]] = 0
         frame = frame.set_index("Time")
         frame.index = pd.to_datetime(frame.index, unit="ms")
         frame = frame.astype(float)
@@ -128,8 +131,8 @@ class MarketData:
                 close=self.df["Close"],
             ),
             go.Scatter(
-                x=self.df["Date"][self.df["Bought"] == 1],
-                y=self.df["Open"][self.df["Bought"] == 1],
+                x=self.df["Date"][self.df["BuyingSignal"] == 1],
+                y=self.df["Open"][self.df["BuyingSignal"] == 1],
                 mode="markers",
                 marker_symbol="arrow-up",
                 marker_size=10,
@@ -137,8 +140,8 @@ class MarketData:
                 name="Buying position",
             ),
             go.Scatter(
-                x=self.df["Date"][self.df["Sold"] == 1],
-                y=self.df["Open"][self.df["Sold"] == 1],
+                x=self.df["Date"][self.df["SellingSignal"] == 1],
+                y=self.df["Open"][self.df["SellingSignal"] == 1],
                 mode="markers",
                 marker_symbol="arrow-down",
                 marker_size=10,
