@@ -3,13 +3,12 @@ import os
 
 from binance.client import Client
 
-from bot.helpers.utils import load_market_data_history
+from bot.helpers.utils import load_market_data_history, date_to_mili_timestamp
 from bot.logging_formatter import logger
 from bot.marketdata import MarketData
 from bot.mock.mock_client import MockClient
 from bot.profitability import get_impact
 from bot.strategy import strategy_testing
-from bot.utils import date_to_mili_timestamp
 
 from bot.indicators.macd_indicator import MacdIndicator
 from bot.indicators.rsi_indicator import RsiIndicator
@@ -130,13 +129,7 @@ if __name__ == "__main__":
         - simu_market_data.df["SellingSignal"].sum()
     ) in [0, 1], "Buy/Sell mismatch O_o"
 
-    initial_investment = 1000
-    wallet = float("%.2f" % get_impact(simu_market_data.df, initial_investment))
-    rentability_percentage = 100 * (wallet - initial_investment) / initial_investment
-    print(
-        f"For an initial investment of {initial_investment} $: {wallet}."
-        f" --> {round(rentability_percentage, 2)} %"
-    )
+    get_impact(simu_market_data.df, investment=1000)
 
     df = simu_market_data.df
-    # simu_market_data.show_candlestick_with_plotly()
+    simu_market_data.show_candlestick_with_plotly()

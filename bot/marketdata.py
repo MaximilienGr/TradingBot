@@ -45,10 +45,10 @@ class MarketData:
         self.apply_technicals()
 
     def should_buy(self):
-        return bool(self.df.Buy.iloc[-1])
+        return self.df.BuyingSignal.iloc[-1]
 
     def should_sell(self, buy_price):
-        indicators_decision = bool(self.df.Sell.iloc[-1])
+        indicators_decision = self.df.SellingSignal.iloc[-1]
         # if buy position :
         stop_loss_activated = self.df.Close[-1] <= buy_price * self.stop_loss_percentage
         stop_limit_activated = (
@@ -74,7 +74,7 @@ class MarketData:
         frame = frame.iloc[:, :6]
         frame.columns = ["Time", "Open", "High", "Low", "Close", "Volume"]
         frame["Timestamp"] = frame["Time"]
-        frame[["Buy", "BuyingSignal", "Sell", "SellingSignal"]] = 0
+        frame[["BuyingSignal", "SellingSignal", "Buying", "Selling"]] = False
         frame = frame.set_index("Time")
         frame.index = pd.to_datetime(frame.index, unit="ms")
         frame = frame.astype(float)
@@ -105,8 +105,8 @@ class MarketData:
 
     def decide(self):
         """Creates two new columns:
-        'Buy': decision to buy or not.
-        'Sell': decision to sell or not.
+        'BuyingSignal': decision to buy or not.
+        'SellingSignal': decision to sell or not.
         Is needed to buy to have all the indicators sending True
         """
         should_buy = True
@@ -117,8 +117,8 @@ class MarketData:
         for indicator in self.indicators:
             should_sell = indicator.should_sell(df=self.df) and should_sell
 
-        self.df["Buy"] = should_buy
-        self.df["Sell"] = should_sell
+        self.df.loc[self.df.index[-1], "BuyingSignal"] = should_buy
+        self.df.loc[self.df.index[-1], "SellingSignal"] = should_sell
 
     def show_candlestick_with_plotly(self):
 
