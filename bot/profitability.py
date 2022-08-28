@@ -3,10 +3,11 @@ from bot.logging_formatter import bcolors
 
 def get_impact(df, investment):
     try:
-        bought_dates = df.index[df["BuyingSignal"] == 1]
+        initial_investment = investment
+        bought_dates = df.index[df["Buying"] == 1]
         bought_prices = df.Open[bought_dates].reset_index()
 
-        sold_dates = df.index[df["SellingSignal"] == 1]
+        sold_dates = df.index[df["Selling"] == 1]
         sold_prices = df.Open[sold_dates].reset_index()
 
         if len(bought_prices) == len(sold_prices) + 1:
@@ -49,6 +50,14 @@ def get_impact(df, investment):
             )
             _sold_price_memory = sold_price
             _sold_time_memory = sold_time
+
+        rentability_percentage = (
+            100 * (investment - initial_investment) / initial_investment
+        )
+        print(
+            f"For an initial investment of {initial_investment} $: {investment}."
+            f" --> {round(rentability_percentage, 2)} %"
+        )
 
         return investment
     except Exception:
