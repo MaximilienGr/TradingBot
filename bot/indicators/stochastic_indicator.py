@@ -67,7 +67,7 @@ class StochasticIndicator(Indicator):
         masks = [(df["%K"].shift(i) < df["%D"].shift(i)) for i in range(self.lags + 1)]
         return pd.DataFrame(masks).sum(axis=0)
 
-    def should_buy(self, df):
+    def should_long(self, df):
         stoch_trigger_indicator = (
             df["stoch_selling_trigger"]
             & df["%K"].between(self.stoch_limits[0], self.stoch_limits[1])
@@ -80,7 +80,7 @@ class StochasticIndicator(Indicator):
         # il faut voir si on récupère bien la dernière ligne seulement
         return (stoch_trigger_indicator | stoch_cross_trigger_indicator)[-1]
 
-    def should_sell(self, df):
+    def should_short(self, df):
 
         # TODO: ca renvoit toujours False... Pourquoi ?
         stoch_trigger_indicator = (

@@ -14,14 +14,14 @@ class Sma9_21Indicator(Indicator):
         df["SMA9>21_trigger"] = df["SMA9"] > df["SMA21"]
         return df
 
-    def should_buy(self, df):
+    def should_long(self, df):
         # if trigger was at false and now it at true
         # i.e. SMA9 is going above SMA21
         if not df["SMA9>21_trigger"].iloc[-2] and df["SMA9>21_trigger"].iloc[-1]:
             return True
         return False
 
-    def should_sell(self, df):
+    def should_short(self, df):
         # if trigger was at true and now it at false
         # i.e. SMA9 is going under SMA21
         if df["SMA9>21_trigger"].iloc[-2] and not df["SMA9>21_trigger"].iloc[-1]:

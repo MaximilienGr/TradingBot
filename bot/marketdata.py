@@ -44,10 +44,10 @@ class MarketData:
         self.df = pd.DataFrame(data)
         self.apply_technicals()
 
-    def should_buy(self):
+    def should_long(self):
         return self.df.BuyingSignal.iloc[-1]
 
-    def should_sell(self, buy_price):
+    def should_short(self, buy_price):
         indicators_decision = self.df.SellingSignal.iloc[-1]
         # if buy position :
         stop_loss_activated = self.df.Close[-1] <= buy_price * self.stop_loss_percentage
@@ -111,11 +111,11 @@ class MarketData:
         """
         should_buy = True
         for indicator in self.indicators:
-            should_buy = indicator.should_buy(df=self.df) and should_buy
+            should_buy = indicator.should_long(df=self.df) and should_buy
 
         should_sell = True
         for indicator in self.indicators:
-            should_sell = indicator.should_sell(df=self.df) and should_sell
+            should_sell = indicator.should_short(df=self.df) and should_sell
 
         self.df.loc[self.df.index[-1], "BuyingSignal"] = should_buy
         self.df.loc[self.df.index[-1], "SellingSignal"] = should_sell

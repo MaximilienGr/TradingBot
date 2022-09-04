@@ -16,12 +16,12 @@ class RsiIndicator(Indicator):
         df["RSI"] = ta.momentum.rsi(df.Close, window=self.rsi_window)
         return df
 
-    def should_buy(self, df):
+    def should_long(self, df):
         if df["RSI"].iloc[-1] > self.rsi_buying_trigger:
             return True
         return False
 
-    def should_sell(self, df):
+    def should_short(self, df):
         if df["RSI"].iloc[-1] > self.rsi_selling_trigger:
             return True
         return False

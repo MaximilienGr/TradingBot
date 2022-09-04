@@ -18,7 +18,7 @@ class Indicator(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def should_buy(self, df) -> bool:
+    def should_long(self, df) -> bool:
         """
         Returns True if the indicator is triggering a buy
         :param df: DataFrame that is used to trigger buy according to the current indicator
@@ -27,7 +27,7 @@ class Indicator(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def should_sell(self, df) -> bool:
+    def should_short(self, df) -> bool:
         """
         Returns True if the indicator is triggering a sell
         :param df: DataFrame that is used to trigger sell according to the current indicator

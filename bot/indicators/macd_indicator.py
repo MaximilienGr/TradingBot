@@ -20,12 +20,12 @@ class MacdIndicator(Indicator):
         )
         return df
 
-    def should_buy(self, df):
+    def should_long(self, df):
         if df["MACD"].iloc[-1] > 0:
             return True
         return False
 
-    def should_sell(self, df):
+    def should_short(self, df):
         if df["MACD"].iloc[-1] < 0:
             return True
         return False

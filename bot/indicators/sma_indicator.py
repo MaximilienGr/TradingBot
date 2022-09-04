@@ -13,10 +13,10 @@ class SmaIndicator(Indicator):
         df["SMA" + str(self.value)] = df["Close"].rolling(self.value).mean()
         return df
 
-    def should_buy(self, df):
+    def should_long(self, df):
         return True
 
-    def should_sell(self, df):
+    def should_short(self, df):
         return True
 
     def get_plot_scatters(self, df) -> list[go.Scatter]:
