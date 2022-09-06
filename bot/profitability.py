@@ -4,52 +4,52 @@ from bot.logging_formatter import bcolors
 def get_impact(df, investment):
     try:
         initial_investment = investment
-        bought_dates = df.index[df["Buying"] == 1]
-        bought_prices = df.Open[bought_dates].reset_index()
+        long_position_dates = df.index[df["LongPosition"] == 1]
+        # TODO: Il faut prendre Open plutot ? Confusion sur le prix a prendre
+        long_position_prices = df.Close[long_position_dates].reset_index()
 
-        sold_dates = df.index[df["Selling"] == 1]
-        sold_prices = df.Open[sold_dates].reset_index()
+        short_position_dates = df.index[df["ShortPosition"] == 1]
+        short_position_prices = df.Close[short_position_dates].reset_index()
 
-        if len(bought_prices) == len(sold_prices) + 1:
-            bought_prices.drop(bought_prices.tail(1).index, inplace=True)
-        elif len(bought_prices) != len(sold_prices):
+        if abs(len(long_position_prices) - len(short_position_prices)) == 1:
+            long_position_prices.drop(long_position_prices.tail(1).index, inplace=True)
+        elif len(long_position_prices) != len(short_position_prices):
             raise Exception
 
-        bought_prices_list = bought_prices.Open.tolist()
-        bought_times_list = bought_prices.Time.tolist()
-        sold_prices_list = sold_prices.Open.tolist()
-        sold_times_list = sold_prices.Time.tolist()
+        long_position_prices_list = long_position_prices.Close.tolist()
+        long_position_times_list = long_position_prices.Time.tolist()
+        short_position_prices_list = short_position_prices.Close.tolist()
+        short_position_times_list = short_position_prices.Time.tolist()
 
-        # This variable is needed to keep track of last "sold" value
-        # First order is a long position. No short, so we set that var to first bought price for no impact on investment
-        # As we start investment with a buy, when there is a selling signal we sold the position;
-        # and open a new one that is shorting !! So we need to keep the value to compare it with next buying signal
-        # (which will be the signal of solding the short position)
-        _sold_price_memory = bought_prices_list[0]
-        _sold_time_memory = bought_times_list[0]
-        for bought_info, sold_info in zip(
-            zip(bought_prices_list, bought_times_list),
-            zip(sold_prices_list, sold_times_list),
+        _short_position_price_memory = long_position_prices_list[0]
+        _short_position_time_memory = long_position_times_list[0]
+        for long_position_info, short_position_info in zip(
+            zip(long_position_prices_list, long_position_times_list),
+            zip(short_position_prices_list, short_position_times_list),
         ):
-            bought_price = bought_info[0]
-            bought_time = bought_info[1]
-            sold_price = sold_info[0]
-            sold_time = sold_info[1]
-            short_percentage = (_sold_price_memory - bought_price) / bought_price
+            long_position_price = long_position_info[0]
+            long_position_time = long_position_info[1]
+            short_position_price = short_position_info[0]
+            short_position_time = short_position_info[1]
+            short_percentage = (
+                _short_position_price_memory - long_position_price
+            ) / long_position_price
             investment *= 1 + short_percentage
             print(
                 f"{bcolors.BOLD}---------\n{bcolors.ENDC}"
-                f"{bcolors.OKBLUE}Short: {_sold_price_memory}({_sold_time_memory}) -> {bought_price}({bought_time}) : {round(100*short_percentage, 3)}%",
+                f"{bcolors.OKBLUE}Short: {_short_position_price_memory}({_short_position_time_memory}) -> {long_position_price}({long_position_time}) : {round(100*short_percentage, 3)}%",
                 end=f"                           --- {round(investment, 3)}\n{bcolors.ENDC}",
             )
-            long_percentage = (sold_price - bought_price) / bought_price
+            long_percentage = (
+                short_position_price - long_position_price
+            ) / long_position_price
             investment *= 1 + long_percentage
             print(
-                f"{bcolors.OKGREEN}Long: {bought_price}({bought_time}) -> {sold_price}({sold_time}) : {round(100 * long_percentage, 3)}%",
+                f"{bcolors.OKGREEN}Long: {long_position_price}({long_position_time}) -> {short_position_price}({short_position_time}) : {round(100 * long_percentage, 3)}%",
                 end=f"                           --- {round(investment, 3)}\n{bcolors.ENDC}",
             )
-            _sold_price_memory = sold_price
-            _sold_time_memory = sold_time
+            _short_position_price_memory = short_position_price
+            _short_position_time_memory = short_position_time
 
         rentability_percentage = (
             100 * (investment - initial_investment) / initial_investment

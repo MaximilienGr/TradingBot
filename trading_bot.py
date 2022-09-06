@@ -18,11 +18,10 @@ from bot.indicators.sma_indicator import SmaIndicator
 
 
 if __name__ == "__main__":
-    logger.warning("Let's start dat shit: warning")
-    logger.debug("Let's start dat shit: debug")
+    logger.warning("Let's start dat shit: warning")  # yellow
+    logger.debug("Let's start dat shit: debug")  # pruple
     logger.info("Let's start dat shit: info")  # green
     logger.error("Let's start dat shit: error")  # red
-    logger.critical("Let's start dat shit: critical")
 
     binance_api_key = os.environ["BINANCE_API_KEY"]
     binance_secret_key = os.environ["BINANCE_SECRET_KEY"]
@@ -30,11 +29,17 @@ if __name__ == "__main__":
 
     # Which pair you want to trade
     symbol = "BTCUSDT"
+    logger.warning(f"Trading {symbol}")  # yellow
     # Number of delay windows allowed to trigger a buy according to the stochastic indicator
     lags = 3
+    # Money initially invested
+    portfolio = 1000
+    logger.warning(f"Initial investment {portfolio}")  # yellow
 
-    stop_loss_percentage = 0.95
-    stop_limit_percentage = 2
+    # Losing percentage admitted before quiting position. 0.05 == 5%
+    stop_loss_percentage = 0.05
+    # Maximum wining percentage admitted before quiting position 1 == 100%
+    stop_limit_percentage = 1
     # rsi_window = 14
     # rsi_buying_trigger = 30
     # rsi_selling_trigger = 70
@@ -60,8 +65,7 @@ if __name__ == "__main__":
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
     simu_market_stop_timestamp = date_to_mili_timestamp("09.01.2022 04:00:00")
 
-    # history_start_timestamp needs to start 1 interval right after the end of simu_market
-    history_start_timestamp = date_to_mili_timestamp("09.01.2022 08:00:00")
+    history_start_timestamp = simu_market_stop_timestamp
     history_stop_timestamp = date_to_mili_timestamp("23.08.2022 18:00:00")
 
     market_data_history = load_market_data_history(
@@ -93,6 +97,7 @@ if __name__ == "__main__":
     simu_market_data = MarketData(
         symbol=symbol,
         interval=interval,
+        portfolio=portfolio,
         lags=lags,
         start_str=simu_market_start_timestamp,
         end_str=simu_market_stop_timestamp,
@@ -103,11 +108,6 @@ if __name__ == "__main__":
             # macd_indicator,
             # stochastic_indicator,
             # SmaIndicator(7),
-            # SmaIndicator(9),
-            # SmaIndicator(20),
-            # SmaIndicator(50),
-            # SmaIndicator(100),
-            # SmaIndicator(200),
         ],
         stop_limit_percentage=stop_limit_percentage,
         stop_loss_percentage=stop_loss_percentage,
@@ -119,17 +119,26 @@ if __name__ == "__main__":
     while len(market_data_history) > 1:
         strategy_testing(
             market_data=simu_market_data,
-            market_data_history=market_data_history,
-            sleep_time=0,
+            # market_data_history=market_data_history,
+            # sleep_time=0,
         )
         simu_market_data.update_data()
 
     assert (
-        simu_market_data.df["BuyingSignal"].sum()
-        - simu_market_data.df["SellingSignal"].sum()
+        abs(
+            simu_market_data.df["LongSignal"].sum()
+            - simu_market_data.df["ShortSignal"].sum()
+        )
+    ) in [0, 1], "Buy/Sell signals mismatch O_o"
+
+    assert (
+        abs(
+            simu_market_data.df["LongPosition"].sum()
+            - simu_market_data.df["ShortPosition"].sum()
+        )
     ) in [0, 1], "Buy/Sell mismatch O_o"
 
-    get_impact(simu_market_data.df, investment=1000)
-
-    df = simu_market_data.df
+    # get_impact(simu_market_data.df, investment=1000)
+    #
+    # df = simu_market_data.df
     simu_market_data.show_candlestick_with_plotly()

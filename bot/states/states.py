@@ -1,0 +1,71 @@
+from enum import Enum
+
+import pandas as pd
+from pydantic import BaseModel
+
+from bot.logging_formatter import logger
+
+
+class Position(Enum):
+    NONE = 1
+    UNDEFINED = 2
+    LONG = 3
+    SHORT = 4
+
+
+class BotState(BaseModel):
+    """
+    position: the curerent position, e.g. short or long
+    price: the price when the position was taken
+    time: the time when the position was taken
+    """
+
+    position: Position = Position.UNDEFINED
+    price: float | None = None
+    time: pd.Timestamp | None = None
+    portfolio: float = 0
+
+    def _quit_position(self, current_time, current_price):
+        logger.error(
+            f"Quitting {self.position.name} position at {current_price} ({current_time})"
+        )
+        match self.position:
+            case Position.NONE:
+                logger.warning("O_o Position quitted while no position set o_O")
+                raise Exception
+            case Position.SHORT:
+                self.position = Position.NONE
+                variation = (self.price - current_price) / current_price
+                self.portfolio *= 1 + variation
+                self.price = None
+                self.time = None
+            case Position.LONG:
+                self.position = Position.NONE
+                variation = (current_price - self.price) / current_price
+                self.portfolio *= 1 + variation
+                self.price = None
+                self.time = None
+            case _:
+                logger.warning("O_o Wtf is that current state o_O")
+                raise Exception
+        logger.info(
+            f"\t\tTrade rentability: {round(100 * variation, 3)}% \n\t\t\t\t\t\t Portfolio: {round(self.portfolio, 3)}"
+        )
+
+    def _update_position(
+        self, new_position: Position, new_price: float, new_time: pd.Timestamp
+    ):
+        """When you change position, you'll reset your params and calculate the % of variation"""
+        match self.position:
+            case Position.SHORT | Position.LONG:
+                logger.warning(
+                    "O_o Setting a position that has not been quitted properly o_O"
+                )
+                raise Exception
+            case Position.NONE | Position.UNDEFINED:
+                self.position = new_position
+                self.price = new_price
+                self.time = new_time
+            case _:
+                logger.warning("O_o Wtf is the current state o_O")
+                raise Exception

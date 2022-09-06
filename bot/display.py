@@ -28,7 +28,7 @@ def show_candlestick(df, width=4, width2=0.5):
     plt.xticks(rotation=45, ha="right")
 
     # define the moments of buying
-    bought_dates = df.index[df["BuyingSignal"] == 1]
+    bought_dates = df.index[df["LongSignal"] == 1]
     bought_prices = df.Open[bought_dates].reset_index()
 
     # plot the buying points
@@ -41,7 +41,7 @@ def show_candlestick(df, width=4, width2=0.5):
     )
 
     # define the moments of selling
-    sell_dates = df.index[df["SellingSignal"] == 1]
+    sell_dates = df.index[df["ShortSignal"] == 1]
     sell_prices = df.Open[sell_dates].reset_index()
 
     # plot the selling moments
