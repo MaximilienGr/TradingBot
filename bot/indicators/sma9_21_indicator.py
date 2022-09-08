@@ -31,7 +31,7 @@ class Sma9_21Indicator(Indicator):
     def get_plot_scatters(self, df) -> list[go.Scatter]:
         return [
             go.Scatter(
-                x=df["Date"],
+                x=df["CloseDate"],
                 y=df["SMA21"],
                 name="SMA21",
                 line=dict(color=get_random_color()),
@@ -39,7 +39,7 @@ class Sma9_21Indicator(Indicator):
                 visible=True,
             ),
             go.Scatter(
-                x=df["Date"],
+                x=df["CloseDate"],
                 y=df["SMA9"],
                 name="SMA9",
                 line=dict(color=get_random_color()),

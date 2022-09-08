@@ -1,5 +1,5 @@
 .idea
 .ipynb_checkpoints
 *_KEY.gpg
-data
+data/*
 TODO.txt

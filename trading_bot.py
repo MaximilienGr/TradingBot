@@ -1,9 +1,12 @@
-import logging
 import os
 
 from binance.client import Client
 
-from bot.helpers.utils import load_market_data_history, date_to_mili_timestamp
+from bot.helpers.utils import (
+    load_market_data_history,
+    date_to_mili_timestamp,
+    interval_to_mili_timestamp,
+)
 from bot.logging_formatter import logger
 from bot.marketdata import MarketData
 from bot.mock.mock_client import MockClient
@@ -13,8 +16,8 @@ from bot.strategy import strategy_testing
 from bot.indicators.macd_indicator import MacdIndicator
 from bot.indicators.rsi_indicator import RsiIndicator
 from bot.indicators.stochastic_indicator import StochasticIndicator
-from bot.indicators.sma9_21_indicator import Sma9_21Indicator
 from bot.indicators.sma_indicator import SmaIndicator
+from bot.indicators.sma9_21_indicator import Sma9_21Indicator
 
 
 if __name__ == "__main__":
@@ -40,17 +43,8 @@ if __name__ == "__main__":
     stop_loss_percentage = 0.05
     # Maximum wining percentage admitted before quiting position 1 == 100%
     stop_limit_percentage = 1
-    # rsi_window = 14
-    # rsi_buying_trigger = 30
-    # rsi_selling_trigger = 70
-    # macd_window_slow = 26
-    # macd_window_fast = 12
-    # macd_window_sign = 9
-    # stoch_window = 14
-    # stoch_smooth_window = 3
-    # stoch_limits = [20, 80]
 
-    # # Candle size
+    ## Candle size
     # interval = Client.KLINE_INTERVAL_1WEEK
     # simu_market_start_timestamp = date_to_mili_timestamp('01.01.2020 02:00:00')
     # # WARNING, you need at least 33 iterations between the beginning and the end for MACD
@@ -61,30 +55,48 @@ if __name__ == "__main__":
 
     # Candle size
     interval = Client.KLINE_INTERVAL_4HOUR
+    refresh_frequency = Client.KLINE_INTERVAL_1HOUR
+    # TODO: il faut s'assurer que l'intervale est un multiple de refresh_frequency
     simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
     simu_market_stop_timestamp = date_to_mili_timestamp("09.01.2022 04:00:00")
 
-    history_start_timestamp = simu_market_stop_timestamp
+    history_start_timestamp = simu_market_stop_timestamp + interval_to_mili_timestamp(
+        refresh_frequency
+    )
+    # - interval_to_mili_timestamp(interval)\
     history_stop_timestamp = date_to_mili_timestamp("23.08.2022 18:00:00")
 
     market_data_history = load_market_data_history(
-        client, symbol, interval, history_start_timestamp, history_stop_timestamp
+        client,
+        symbol,
+        refresh_frequency,
+        history_start_timestamp,
+        history_stop_timestamp,
     )
 
-    # INDICATORS
+    ### INDICATORS
+    # rsi_window = 14
+    # rsi_buying_trigger = 30
+    # rsi_selling_trigger = 70
     # rsi_indicator = RsiIndicator(
     #     rsi_window=rsi_window,
     #     rsi_buying_trigger=rsi_buying_trigger,
     #     rsi_selling_trigger=rsi_selling_trigger,
     # )
     #
+    # macd_window_slow = 26
+    # macd_window_fast = 12
+    # macd_window_sign = 9
     # macd_indicator = MacdIndicator(
     #     macd_window_slow=macd_window_slow,
     #     macd_window_fast=macd_window_fast,
     #     macd_window_sign=macd_window_sign,
     # )
     #
+    # stoch_window = 14
+    # stoch_smooth_window = 3
+    # stoch_limits = [20, 80]
     # stochastic_indicator = StochasticIndicator(
     #     lags=lags,
     #     stoch_window=stoch_window,
@@ -95,12 +107,12 @@ if __name__ == "__main__":
     sma9_21_indicator = Sma9_21Indicator()
 
     simu_market_data = MarketData(
-        symbol=symbol,
-        interval=interval,
-        portfolio=portfolio,
-        lags=lags,
         start_str=simu_market_start_timestamp,
         end_str=simu_market_stop_timestamp,
+        symbol=symbol,
+        portfolio=portfolio,
+        interval=interval,
+        lags=lags,
         client=client,
         indicators=[
             sma9_21_indicator,
@@ -111,9 +123,11 @@ if __name__ == "__main__":
         ],
         stop_limit_percentage=stop_limit_percentage,
         stop_loss_percentage=stop_loss_percentage,
+        refresh_frequency=refresh_frequency,
     )
 
     mock_client = MockClient(market_data_history=market_data_history)
+    simu_market_data.df.isClosed = True
     simu_market_data.client = mock_client
 
     while len(market_data_history) > 1:

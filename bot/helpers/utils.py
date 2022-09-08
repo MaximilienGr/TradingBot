@@ -3,6 +3,8 @@ import os
 import random
 from datetime import datetime
 
+from binance import Client
+
 from bot.logging_formatter import logger
 
 
@@ -39,5 +41,41 @@ def date_to_mili_timestamp(date):
     return int(datetime.strptime(date, "%d.%m.%Y %H:%M:%S").timestamp() * 1000)
 
 
+def interval_to_mili_timestamp(interval):
+    # hours, minutes, seconds = 2, 0, 0
+    # refresh_frequency = float(3600000 * hours + 60000 * minutes + 1000 * seconds)
+    match interval:
+        case Client.KLINE_INTERVAL_1MINUTE:
+            return int(60000 * 1)
+        case Client.KLINE_INTERVAL_1HOUR:
+            return int(3600000 * 1)
+        case Client.KLINE_INTERVAL_2HOUR:
+            return int(3600000 * 2)
+        case Client.KLINE_INTERVAL_4HOUR:
+            return int(3600000 * 4)
+
+
 def get_random_color() -> str:
     return "#" + "".join([random.choice("ABCDEF0123456789") for i in range(6)])
+
+
+def merge_candles(old_candle, new_candle):
+    """
+    Take two consecutive candles and merge them together
+    :param old_candle: old candle to take value from
+    :param new_candle: new candle to update value to
+    :return:
+    """
+    new_candle.at[new_candle.index[-1], "OpenTime"] = old_candle["OpenTime"].iloc[-1]
+    new_candle.at[new_candle.index[-1], "OpenDate"] = old_candle["OpenDate"].iloc[-1]
+    new_candle.at[new_candle.index[-1], "Open"] = old_candle["Open"].iloc[-1]
+    new_candle.at[new_candle.index[-1], "High"] = max(
+        new_candle["High"].iloc[-1], old_candle["High"].iloc[-1]
+    )
+    new_candle.at[new_candle.index[-1], "Low"] = min(
+        new_candle["Low"].iloc[-1], old_candle["Low"].iloc[-1]
+    )
+    new_candle.at[new_candle.index[-1], "Volume"] = (
+        new_candle["Volume"].iloc[-1] + old_candle["Volume"].iloc[-1]
+    )
+    return new_candle

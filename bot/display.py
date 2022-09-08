@@ -15,25 +15,27 @@ def show_candlestick(df, width=4, width2=0.5):
     col2 = "red"
 
     # plot up prices
-    plt.bar(up.index, up.Close - up.Open, width, bottom=up.Open, color=col1)
-    plt.bar(up.index, up.High - up.Close, width2, bottom=up.Close, color=col1)
-    plt.bar(up.index, up.Low - up.Open, width2, bottom=up.Open, color=col1)
+    plt.bar(up.CloseDate, up.Close - up.Open, width, bottom=up.Open, color=col1)
+    plt.bar(up.CloseDate, up.High - up.Close, width2, bottom=up.Close, color=col1)
+    plt.bar(up.CloseDate, up.Low - up.Open, width2, bottom=up.Open, color=col1)
 
     # plot down prices
-    plt.bar(down.index, down.Close - down.Open, width, bottom=down.Open, color=col2)
-    plt.bar(down.index, down.High - down.Open, width2, bottom=down.Open, color=col2)
-    plt.bar(down.index, down.Low - down.Close, width2, bottom=down.Close, color=col2)
+    plt.bar(down.CloseDate, down.Close - down.Open, width, bottom=down.Open, color=col2)
+    plt.bar(down.CloseDate, down.High - down.Open, width2, bottom=down.Open, color=col2)
+    plt.bar(
+        down.CloseDate, down.Low - down.Close, width2, bottom=down.Close, color=col2
+    )
 
     # rotate x-axis tick labels
     plt.xticks(rotation=45, ha="right")
 
     # define the moments of buying
-    bought_dates = df.index[df["LongSignal"] == 1]
-    bought_prices = df.Open[bought_dates].reset_index()
+    bought_dates = df.CloseDate[df["LongSignal"] == 1]
+    bought_prices = df.Open[bought_dates]
 
     # plot the buying points
     plt.scatter(
-        x=bought_prices.Time.tolist(),
+        x=bought_prices.OpenTime.tolist(),
         y=bought_prices.Open.tolist(),
         marker=4,
         color="c",
@@ -46,7 +48,7 @@ def show_candlestick(df, width=4, width2=0.5):
 
     # plot the selling moments
     plt.scatter(
-        x=sell_prices.Time.tolist(),
+        x=sell_prices.OpenTime.tolist(),
         y=sell_prices.Open.tolist(),
         marker=4,
         color="m",

@@ -22,7 +22,7 @@ class SmaIndicator(Indicator):
     def get_plot_scatters(self, df) -> list[go.Scatter]:
         return [
             go.Scatter(
-                x=df["Date"],
+                x=df["CloseDate"],
                 y=df["SMA" + str(self.value)],
                 name="SMA" + str(self.value),
                 line=dict(color=get_random_color()),
