@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     # Candle size
     interval = Client.KLINE_INTERVAL_4HOUR
-    refresh_frequency = Client.KLINE_INTERVAL_1HOUR
+    refresh_frequency = Client.KLINE_INTERVAL_4HOUR
     # TODO: il faut s'assurer que l'intervale est un multiple de refresh_frequency
     simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD

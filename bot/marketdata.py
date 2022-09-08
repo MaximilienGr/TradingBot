@@ -126,6 +126,7 @@ class MarketData:
             "Volume",
             "CloseTime",
         ]
+        frame["PositionPrice"] = 0
         frame = frame.astype(float)
         frame[
             [
@@ -200,6 +201,7 @@ class MarketData:
             f"Taking LONG position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
         )
         self.df.at[self.df.index[-1], "LongPosition"] = True
+        self.df.at[self.df.index[-1], "PositionPrice"] = self.df.Close.iloc[-1]
         self._current_state._update_position(
             new_position=Position.LONG,
             new_time=self.df.CloseDate.iloc[-1],
@@ -214,6 +216,7 @@ class MarketData:
             f"Taking SHORT position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
         )
         self.df.at[self.df.index[-1], "ShortPosition"] = True
+        self.df.at[self.df.index[-1], "PositionPrice"] = self.df.Close.iloc[-1]
         self._current_state._update_position(
             new_position=Position.SHORT,
             new_time=self.df.CloseDate.iloc[-1],
@@ -247,7 +250,7 @@ class MarketData:
             ),
             go.Scatter(
                 x=self.df["CloseDate"][self.df["LongSignal"] == 1],
-                y=self.df["Close"][self.df["LongSignal"] == 1],
+                y=self.df["PositionPrice"][self.df["LongSignal"] == 1],
                 mode="markers",
                 marker_symbol="arrow-up",
                 marker_size=10,
@@ -256,7 +259,7 @@ class MarketData:
             ),
             go.Scatter(
                 x=self.df["CloseDate"][self.df["ShortSignal"] == 1],
-                y=self.df["Close"][self.df["ShortSignal"] == 1],
+                y=self.df["PositionPrice"][self.df["ShortSignal"] == 1],
                 mode="markers",
                 marker_symbol="arrow-down",
                 marker_size=10,
@@ -265,7 +268,7 @@ class MarketData:
             ),
             go.Scatter(
                 x=self.df["CloseDate"][self.df["LongPosition"] == 1],
-                y=self.df["Close"][self.df["LongPosition"] == 1],
+                y=self.df["PositionPrice"][self.df["LongPosition"] == 1],
                 mode="markers",
                 marker_symbol="x",
                 marker_size=10,
@@ -274,7 +277,7 @@ class MarketData:
             ),
             go.Scatter(
                 x=self.df["CloseDate"][self.df["ShortPosition"] == 1],
-                y=self.df["Close"][self.df["ShortPosition"] == 1],
+                y=self.df["PositionPrice"][self.df["ShortPosition"] == 1],
                 mode="markers",
                 marker_symbol="x",
                 marker_size=10,
