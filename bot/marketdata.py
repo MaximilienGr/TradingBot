@@ -44,13 +44,20 @@ class MarketData:
 
     def get_last_long_position_price(self):
         """Try to get that last long position price."""
-        return self.df[self.df["LongSignal"] == 1]["Close"].iloc[-1]
+        return self.df[self.df["LongPosition"] == 1]["Close"].iloc[-1]
 
     def get_last_short_position_price(self):
         """Try to get that last short position price."""
-        return self.df[self.df["ShortSignal"] == 1]["Close"].iloc[-1]
+        return self.df[self.df["ShortPosition"] == 1]["Close"].iloc[-1]
 
     def should_long(self):
+        """
+        Only one position can be taken per candle.
+        If the latest candle already have taken a position, we don't take new positions.
+        :return: Boolean to say if we should take a long position
+        """
+        if self.df.ShortPosition.iloc[-1] or self.df.LongPosition.iloc[-1]:
+            return False
         match self._current_state.position:
             case Position.NONE | Position.UNDEFINED | Position.SHORT:
                 return self.df.LongSignal.iloc[-1]
@@ -58,6 +65,13 @@ class MarketData:
                 return False
 
     def should_short(self):
+        """
+        Only one position can be taken per candle.
+        If the latest candle already have taken a position, we don't take new positions.
+        :return: Boolean to say if we should take a short position
+        """
+        if self.df.ShortPosition.iloc[-1] or self.df.LongPosition.iloc[-1]:
+            return False
         match self._current_state.position:
             case Position.NONE | Position.UNDEFINED | Position.LONG:
                 return self.df.ShortSignal.iloc[-1]
@@ -146,29 +160,31 @@ class MarketData:
         """
         Update the latest candle.
         If the candle is closed, create a new one.
-        If the candle is not closed, delete the non-closed one, and create a new - updated - one.
+        If the candle is not closed, get another candle with the size of refresh_frequency,
+        and merge it with the latest candle.
         """
-        start_str = int(self.df.OpenTime.iloc[-1])
-        if self.df.iloc[-1]["isClosed"]:
-            end_str = start_str + interval_to_mili_timestamp(self.interval)
-        else:
-            end_str = int(self.df.CloseTime.iloc[-1]) + self.refresh_frequency
+        start_str = int(self.df.CloseTime.iloc[-1])
+        end_str = start_str + self.refresh_frequency
         new_candle = self._get_data(start_str=start_str, end_str=end_str)
-        if end_str - start_str > interval_to_mili_timestamp(self.interval):
-            raise Exception(
-                "Wtf is this interval ? You are not creating candle correctly :("
-            )
-        elif end_str - start_str == interval_to_mili_timestamp(self.interval):
-            new_candle.at[new_candle.index[-1], "isClosed"] = True
+        # Update of the last candle if it was not closed
         if not self.df.iloc[-1]["isClosed"]:
             old_candle = self.df.tail(1)
             self.df.drop(self.df.tail(1).index, inplace=True)
             new_candle = merge_candles(old_candle=old_candle, new_candle=new_candle)
-
         self.df = pd.concat([self.df, new_candle], ignore_index=True)
+        # Checks on the size of the latest candle
+        if self.df.CloseTime.iloc[-1] - self.df.OpenTime.iloc[
+            -1
+        ] > interval_to_mili_timestamp(self.interval):
+            raise Exception(
+                "Wtf is this interval ? You are not creating candle correctly :("
+            )
+        # CloseTime is actually one second before the real close time
+        elif (self.df.CloseTime.iloc[-1] + 1) - self.df.OpenTime.iloc[
+            -1
+        ] == interval_to_mili_timestamp(self.interval):
+            self.df.at[self.df.index[-1], "isClosed"] = True
 
-        # Add the rows
-        self.df = self.df[~self.df.index.duplicated(keep="first")]
         self.apply_technicals()
 
     def apply_technicals(self):
@@ -176,7 +192,7 @@ class MarketData:
         for indicator in self.indicators:
             self.df = indicator.set_indicator(df=self.df)
 
-    def decide(self):
+    def get_indicators_signals(self):
         """Creates two new columns:
         'LongSignal': decision to buy or not.
         'ShortSignal': decision to sell or not.
@@ -250,7 +266,7 @@ class MarketData:
             ),
             go.Scatter(
                 x=self.df["CloseDate"][self.df["LongSignal"] == 1],
-                y=self.df["PositionPrice"][self.df["LongSignal"] == 1],
+                y=self.df["Close"][self.df["LongSignal"] == 1],
                 mode="markers",
                 marker_symbol="arrow-up",
                 marker_size=10,
@@ -259,7 +275,7 @@ class MarketData:
             ),
             go.Scatter(
                 x=self.df["CloseDate"][self.df["ShortSignal"] == 1],
-                y=self.df["PositionPrice"][self.df["ShortSignal"] == 1],
+                y=self.df["Close"][self.df["ShortSignal"] == 1],
                 mode="markers",
                 marker_symbol="arrow-down",
                 marker_size=10,

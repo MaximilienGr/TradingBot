@@ -11,21 +11,39 @@ class Sma9_21Indicator(Indicator):
     def set_indicator(self, df):
         df["SMA9"] = df["Close"].rolling(9).mean()
         df["SMA21"] = df["Close"].rolling(21).mean()
-        df["SMA9>21_trigger"] = df["SMA9"] > df["SMA21"]
+        df["dSMA9"] = (df["SMA9"] - df["SMA9"].shift(1)) / (
+            df["CloseTime"] - df["CloseTime"].shift(1)
+        )
+        df["dSMA21"] = (df["SMA21"] - df["SMA21"].shift(1)) / (
+            df["CloseTime"] - df["CloseTime"].shift(1)
+        )
+        df["SMA9_under_SMA21_trigger"] = df["SMA9"] < df["SMA21"]
         return df
 
     def should_long(self, df):
         # if trigger was at false and now it at true
         # i.e. SMA9 is going above SMA21
-        if not df["SMA9>21_trigger"].iloc[-2] and df["SMA9>21_trigger"].iloc[-1]:
+        SMA9_was_under_SMA21 = df["SMA9_under_SMA21_trigger"].iloc[-2]
+        SMA9_is_under_SMA21 = df["SMA9_under_SMA21_trigger"].iloc[-1]
+        # SMA9_derivative_positive = df["dSMA9"].iloc[-1] > 0
+        # SMA9_is_close_to_SMA21 = df["SMA9"].iloc[-1] / df["SMA21"].iloc[-1] > 0.997
+        if SMA9_was_under_SMA21 and not SMA9_is_under_SMA21:
             return True
+        # if SMA9_was_under_SMA21 and SMA9_derivative_positive and SMA9_is_close_to_SMA21:
+        #     return True
         return False
 
     def should_short(self, df):
         # if trigger was at true and now it at false
         # i.e. SMA9 is going under SMA21
-        if df["SMA9>21_trigger"].iloc[-2] and not df["SMA9>21_trigger"].iloc[-1]:
+        SMA9_was_under_SMA21 = df["SMA9_under_SMA21_trigger"].iloc[-2]
+        SMA9_is_under_SMA21 = df["SMA9_under_SMA21_trigger"].iloc[-1]
+        # SMA9_derivative_negative = df["dSMA9"].iloc[-1] < 0
+        # SMA21_is_close_to_SMA9 = df["SMA9"].iloc[-1] / df["SMA21"].iloc[-1] < 1.003
+        if not SMA9_was_under_SMA21 and SMA9_is_under_SMA21:
             return True
+        # if not SMA9_was_under_SMA21 and SMA9_derivative_negative and SMA21_is_close_to_SMA9:
+        #     return True
         return False
 
     def get_plot_scatters(self, df) -> list[go.Scatter]:

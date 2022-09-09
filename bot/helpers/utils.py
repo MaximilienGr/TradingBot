@@ -9,9 +9,9 @@ from bot.logging_formatter import logger
 
 
 def load_market_data_history(
-    client, symbol, interval, history_start_timestamp, history_stop_timestamp
+    client, symbol, refresh_frequency, history_start_timestamp, history_stop_timestamp
 ):
-    history_path = f"./data/{history_start_timestamp}-{history_stop_timestamp}-history"
+    history_path = f"./data/{history_start_timestamp}-{history_stop_timestamp}-{refresh_frequency}-history"
     if os.path.exists(history_path):
         logger.debug("::Loading:: market_data_history from local storage")
         market_data_history = []
@@ -26,7 +26,7 @@ def load_market_data_history(
         logger.debug("::Loading:: market_data_history from client")
         market_data_history = client.get_historical_klines(
             symbol=symbol,
-            interval=interval,
+            interval=refresh_frequency,
             start_str=history_start_timestamp,
             end_str=history_stop_timestamp,
         )
@@ -66,16 +66,16 @@ def merge_candles(old_candle, new_candle):
     :param new_candle: new candle to update value to
     :return:
     """
-    new_candle.at[new_candle.index[-1], "OpenTime"] = old_candle["OpenTime"].iloc[-1]
-    new_candle.at[new_candle.index[-1], "OpenDate"] = old_candle["OpenDate"].iloc[-1]
-    new_candle.at[new_candle.index[-1], "Open"] = old_candle["Open"].iloc[-1]
-    new_candle.at[new_candle.index[-1], "High"] = max(
-        new_candle["High"].iloc[-1], old_candle["High"].iloc[-1]
+    old_candle.at[old_candle.index[-1], "CloseTime"] = new_candle["CloseTime"].iloc[-1]
+    old_candle.at[old_candle.index[-1], "CloseDate"] = new_candle["CloseDate"].iloc[-1]
+    old_candle.at[old_candle.index[-1], "Close"] = new_candle["Close"].iloc[-1]
+    old_candle.at[old_candle.index[-1], "High"] = max(
+        old_candle["High"].iloc[-1], new_candle["High"].iloc[-1]
     )
-    new_candle.at[new_candle.index[-1], "Low"] = min(
-        new_candle["Low"].iloc[-1], old_candle["Low"].iloc[-1]
+    old_candle.at[old_candle.index[-1], "Low"] = min(
+        old_candle["Low"].iloc[-1], new_candle["Low"].iloc[-1]
     )
-    new_candle.at[new_candle.index[-1], "Volume"] = (
-        new_candle["Volume"].iloc[-1] + old_candle["Volume"].iloc[-1]
+    old_candle.at[old_candle.index[-1], "Volume"] = (
+        old_candle["Volume"].iloc[-1] + new_candle["Volume"].iloc[-1]
     )
-    return new_candle
+    return old_candle
