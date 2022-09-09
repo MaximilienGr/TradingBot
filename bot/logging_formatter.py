@@ -47,6 +47,18 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
+def print_BOLD(message):
+    print(f"{bcolors.BOLD} {message} {bcolors.ENDC}")
+
+
+def print_OKBLUE(message):
+    print(f"{bcolors.OKBLUE} {message} {bcolors.ENDC}")
+
+
+def print_OKGREEN(message):
+    print(f"{bcolors.OKGREEN} {message} {bcolors.ENDC}")
+
+
 # print(f"{bcolors.HEADER}Warning: No active frommets remain. Continue?")
 # print(f"{bcolors.OKBLUE}Warning: No active frommets remain. Continue?") #####
 # print(f"{bcolors.OKCYAN}Warning: No active frommets remain. Continue?")
