@@ -40,15 +40,8 @@ class MarketData:
         if not data:
             data = self._get_data(start_str=self.start_str, end_str=self.end_str)
         self.df = pd.DataFrame(data)
-        self.apply_technicals()
-
-    def get_last_long_position_price(self):
-        """Try to get that last long position price."""
-        return self.df[self.df["LongPosition"] == 1]["Close"].iloc[-1]
-
-    def get_last_short_position_price(self):
-        """Try to get that last short position price."""
-        return self.df[self.df["ShortPosition"] == 1]["Close"].iloc[-1]
+        self.trades_reporting = pd.DataFrame()
+        self.apply_indicators()
 
     def should_long(self):
         """
@@ -88,7 +81,7 @@ class MarketData:
                 pass
             case Position.SHORT:
                 # StopLoss to stop bleeding in short positions
-                last_short_position_price = self.get_last_short_position_price()
+                last_short_position_price = self._current_state.price
                 stop_loss_activated = self.df.Close.iloc[
                     -1
                 ] >= last_short_position_price * (1 + self.stop_loss_percentage)
@@ -100,10 +93,10 @@ class MarketData:
                     logger.error(
                         f"Stop activated for {self._current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
                     )
-                    self.quit_short_position()
+                    self.quit_position()
             case Position.LONG:
                 # StopLoss to stop bleeding in long positions
-                last_long_position_price = self.get_last_long_position_price()
+                last_long_position_price = self._current_state.price
                 stop_loss_activated = self.df.Close.iloc[
                     -1
                 ] <= last_long_position_price * (1 - self.stop_loss_percentage)
@@ -115,7 +108,7 @@ class MarketData:
                     logger.error(
                         f"Stop activated for {self._current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})   "
                     )
-                    self.quit_long_position()
+                    self.quit_position()
 
     def _get_data(self, start_str, end_str):
         """Get all data from binance
@@ -148,7 +141,6 @@ class MarketData:
                 "ShortSignal",  # Signal for a Short position
                 "LongPosition",  # When True, means that a long position has been set
                 "ShortPosition",  # When True, means that a short position has been set
-                "QuitPosition",  # When True, means that the current position has been left
                 "isClosed",  # When True, means that the current candle is closed
             ]
         ] = False
@@ -185,9 +177,9 @@ class MarketData:
         ] == interval_to_mili_timestamp(self.interval):
             self.df.at[self.df.index[-1], "isClosed"] = True
 
-        self.apply_technicals()
+        self.apply_indicators()
 
-    def apply_technicals(self):
+    def apply_indicators(self):
         """Make the maths for all indicators"""
         for indicator in self.indicators:
             self.df = indicator.set_indicator(df=self.df)
@@ -211,7 +203,7 @@ class MarketData:
 
     def long(self):
         if self._current_state.position == Position.SHORT:
-            self.quit_short_position()
+            self.quit_position()
         # TODO: Use the client to go long position
         logger.info(
             f"Taking LONG position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
@@ -226,7 +218,7 @@ class MarketData:
 
     def short(self):
         if self._current_state.position == Position.LONG:
-            self.quit_long_position()
+            self.quit_position()
         # TODO: Use the client to go short position
         logger.warning(
             f"Taking SHORT position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
@@ -239,19 +231,31 @@ class MarketData:
             new_price=self.df.Close.iloc[-1],
         )
 
-    def quit_long_position(self):
-        # TODO: Use the client to quit long position
+    def quit_position(self):
+        """
+        Quit the current position and updates the reporting DataFrame
+        :return:
+        """
+        # TODO: Use the client to quit position
+        self.update_trade_reporting()
         self._current_state._quit_position(
             current_time=self.df.CloseDate.iloc[-1],
             current_price=self.df.Close.iloc[-1],
         )
-        self.df.at[self.df.index[-1], "QuitPosition"] = True
 
-    def quit_short_position(self):
-        # TODO: Use the client to quit short position
-        self._current_state._quit_position(
-            current_time=self.df.CloseDate.iloc[-1],
-            current_price=self.df.Close.iloc[-1],
+    def update_trade_reporting(self):
+        trade_details = pd.DataFrame(
+            data={
+                "EntryTime": [self._current_state.time],
+                "EntryPrice": [self._current_state.price],
+                "Position": [self._current_state.position.name],
+                "ExitPrice": [self.df.Close.iloc[-1]],
+                "ExitTime": [self.df.CloseDate.iloc[-1]],
+                # "Portfolio": [self._current_state.portfolio]
+            }
+        )
+        self.trades_reporting = pd.concat(
+            [self.trades_reporting, trade_details], ignore_index=True
         )
 
     def show_candlestick_with_plotly(self):

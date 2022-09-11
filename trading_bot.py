@@ -46,7 +46,7 @@ if __name__ == "__main__":
     simu_market_stop_timestamp = date_to_mili_timestamp("09.01.2022 04:00:00")
 
     history_start_timestamp = simu_market_stop_timestamp
-    history_stop_timestamp = date_to_mili_timestamp("23.08.2022 18:00:00")
+    history_stop_timestamp = date_to_mili_timestamp("23.03.2022 18:00:00")
 
     market_data_history = load_market_data_history(
         client,
