@@ -202,6 +202,10 @@ class MarketData:
         self.df.loc[self.df.index[-1], "ShortSignal"] = should_sell
 
     def long(self):
+        """
+        Take a long position
+        :return: None
+        """
         if self._current_state.position == Position.SHORT:
             self.quit_position()
         # TODO: Use the client to go long position
@@ -217,6 +221,10 @@ class MarketData:
         )
 
     def short(self):
+        """
+        Take a short position
+        :return: None
+        """
         if self._current_state.position == Position.LONG:
             self.quit_position()
         # TODO: Use the client to go short position
@@ -244,14 +252,27 @@ class MarketData:
         )
 
     def update_trade_reporting(self):
+        """
+        Add new row to the DataFrame when quitting a position.
+        That DataFrame sums up all the trades that have been done.
+        """
+        # TODO: Mettre plusieurs niveau dans les noms de colonnes (par ex: taking position/ quitting position)
+        # avec ces niveau on peut avoir les datas des moments de prises de position pour pouvoir faire du ML dessus ??
+        # Et ca permet aussi d'avoir une premiere étape pour analyser pourquoi les calls étaient mauvais ?
+        # Comme ca ensuite on peut mieux filter et avoir de meilleurs signaux de prise de position
+        current_price = self.df.Close.iloc[-1]
+        variation = round(
+            self._current_state.get_variation(current_price=current_price) * 100, 3
+        )
         trade_details = pd.DataFrame(
             data={
                 "EntryTime": [self._current_state.time],
                 "EntryPrice": [self._current_state.price],
                 "Position": [self._current_state.position.name],
-                "ExitPrice": [self.df.Close.iloc[-1]],
+                "ExitPrice": [current_price],
                 "ExitTime": [self.df.CloseDate.iloc[-1]],
-                # "Portfolio": [self._current_state.portfolio]
+                "Variation": [variation],
+                "Portfolio": [self._current_state.portfolio],
             }
         )
         self.trades_reporting = pd.concat(

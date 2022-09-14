@@ -33,15 +33,9 @@ class BotState(BaseModel):
             case Position.NONE:
                 logger.warning("O_o Position quitted while no position set o_O")
                 raise Exception
-            case Position.SHORT:
+            case Position.SHORT | Position.LONG:
+                variation = self.get_variation(current_price)
                 self.position = Position.NONE
-                variation = (self.price - current_price) / current_price
-                self.portfolio *= 1 + variation
-                self.price = None
-                self.time = None
-            case Position.LONG:
-                self.position = Position.NONE
-                variation = (current_price - self.price) / current_price
                 self.portfolio *= 1 + variation
                 self.price = None
                 self.time = None
@@ -51,6 +45,19 @@ class BotState(BaseModel):
         logger.info(
             f"\t\tTrade rentability: {round(100 * variation, 3)}% \n\t\t\t\t\t\t Portfolio: {round(self.portfolio, 3)}"
         )
+
+    def get_variation(self, current_price):
+        match self.position:
+            case Position.NONE:
+                logger.warning("O_o Position quitted while no position set o_O")
+                raise Exception
+            case Position.SHORT:
+                return (self.price - current_price) / current_price
+            case Position.LONG:
+                return (current_price - self.price) / current_price
+            case _:
+                logger.warning("O_o Wtf is that current state o_O")
+                raise Exception
 
     def _update_position(
         self, new_position: Position, new_price: float, new_time: pd.Timestamp

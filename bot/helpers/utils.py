@@ -53,6 +53,8 @@ def interval_to_mili_timestamp(interval):
             return int(3600000 * 2)
         case Client.KLINE_INTERVAL_4HOUR:
             return int(3600000 * 4)
+        case Client.KLINE_INTERVAL_1DAY:
+            return int(3600000 * 24)
 
 
 def get_random_color() -> str:

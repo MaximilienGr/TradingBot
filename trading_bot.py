@@ -39,14 +39,14 @@ if __name__ == "__main__":
     stop_limit_percentage = 1
 
     # Candle size
-    interval = Client.KLINE_INTERVAL_4HOUR
-    refresh_frequency = Client.KLINE_INTERVAL_1HOUR
+    interval = Client.KLINE_INTERVAL_1DAY
+    refresh_frequency = Client.KLINE_INTERVAL_1DAY
     simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
-    simu_market_stop_timestamp = date_to_mili_timestamp("09.01.2022 04:00:00")
+    simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 04:00:00")
 
     history_start_timestamp = simu_market_stop_timestamp
-    history_stop_timestamp = date_to_mili_timestamp("23.03.2022 18:00:00")
+    history_stop_timestamp = date_to_mili_timestamp("23.08.2022 18:00:00")
 
     market_data_history = load_market_data_history(
         client,
