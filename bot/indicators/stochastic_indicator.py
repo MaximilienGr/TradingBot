@@ -94,5 +94,8 @@ class StochasticIndicator(Indicator):
         )
         return (stoch_trigger_indicator | stoch_cross_trigger_indicator)[-1]
 
-    def get_plot_scatters(self, df) -> list[Scatter]:
+    def get_plot_scatters_for_main_graph(self, df) -> list[Scatter]:
         return []
+
+    def get_indicator_graph(self, df):
+        pass

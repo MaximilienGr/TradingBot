@@ -46,7 +46,7 @@ class Sma9_21Indicator(Indicator):
         #     return True
         return False
 
-    def get_plot_scatters(self, df) -> list[go.Scatter]:
+    def get_plot_scatters_for_main_graph(self, df) -> list[go.Scatter]:
         return [
             go.Scatter(
                 x=df["CloseDate"],
@@ -65,3 +65,6 @@ class Sma9_21Indicator(Indicator):
                 visible=True,
             ),
         ]
+
+    def get_indicator_graph(self, df):
+        pass

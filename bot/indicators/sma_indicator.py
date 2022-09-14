@@ -19,7 +19,7 @@ class SmaIndicator(Indicator):
     def should_short(self, df):
         return True
 
-    def get_plot_scatters(self, df) -> list[go.Scatter]:
+    def get_plot_scatters_for_main_graph(self, df) -> list[go.Scatter]:
         return [
             go.Scatter(
                 x=df["CloseDate"],
@@ -30,3 +30,6 @@ class SmaIndicator(Indicator):
                 visible=True,
             )
         ]
+
+    def get_indicator_graph(self, df):
+        pass

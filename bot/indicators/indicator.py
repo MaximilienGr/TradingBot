@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from pandas import DataFrame
 from plotly.graph_objects import Scatter
+from dash import dcc
 
 
 class Indicator(ABC):
@@ -36,19 +37,17 @@ class Indicator(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_plot_scatters(self, df) -> list[Scatter]:
+    def get_plot_scatters_for_main_graph(self, df) -> list[Scatter]:
         """
         Returns the Scatter to be added to main graph
         :return: Scatter
         """
         raise NotImplementedError
 
-    # sma = Scatter(
-    #     x=self.df.index,
-    #     y=self.df["Close"].rolling(i).mean(),  # Pandas SMA
-    #     name="SMA" + str(i),
-    #     mode="line",
-    #     line=dict(color="#3E86AB"),
-    #     opacity=0.7,
-    #     visible=False,
-    # )
+    @abstractmethod
+    def get_indicator_graph(self, df) -> dcc.Graph:
+        """
+        Returns the graph that is specific to indicator. This one will be added in the final dashboard.
+        :return: dcc.Graph
+        """
+        raise NotImplementedError

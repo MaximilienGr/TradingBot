@@ -30,5 +30,8 @@ class MacdIndicator(Indicator):
             return True
         return False
 
-    def get_plot_scatters(self, df) -> list[Scatter]:
+    def get_plot_scatters_for_main_graph(self, df) -> list[Scatter]:
         return []
+
+    def get_indicator_graph(self, df):
+        pass

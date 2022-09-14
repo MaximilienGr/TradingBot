@@ -1,6 +1,7 @@
 import ast
 import os
 import random
+import re
 from datetime import datetime
 
 from binance import Client
@@ -44,17 +45,20 @@ def date_to_mili_timestamp(date):
 def interval_to_mili_timestamp(interval):
     # hours, minutes, seconds = 2, 0, 0
     # refresh_frequency = float(3600000 * hours + 60000 * minutes + 1000 * seconds)
-    match interval:
-        case Client.KLINE_INTERVAL_1MINUTE:
-            return int(60000 * 1)
-        case Client.KLINE_INTERVAL_1HOUR:
-            return int(3600000 * 1)
-        case Client.KLINE_INTERVAL_2HOUR:
-            return int(3600000 * 2)
-        case Client.KLINE_INTERVAL_4HOUR:
-            return int(3600000 * 4)
-        case Client.KLINE_INTERVAL_1DAY:
-            return int(3600000 * 24)
+    match re.split(r"(\d+)", interval)[1:]:
+        case [number, "m"]:
+            return 60000 * int(number)
+        case [number, "h"]:
+            return 60000 * 60 * int(number)
+        case [number, "d"]:
+            return 60000 * 60 * 24 * int(number)
+        case [number, "w"]:
+            return 60000 * 60 * 24 * 7 * int(number)
+        case [number, "M"]:
+            logger.warning(
+                "Watchout with the intervals... Interval for months are not very precise ? 30d ? 31d ?"
+            )
+            return 60000 * 60 * 24 * 7 * 30 * int(number)
 
 
 def get_random_color() -> str:

@@ -280,8 +280,9 @@ class MarketData:
         )
 
     def show_candlestick_with_plotly(self):
-
+        legend = dict(xanchor="left", yanchor="top", orientation="h", y=0.99, x=0.01)
         data = [
+            # Candlesticks
             go.Candlestick(
                 x=self.df["CloseDate"],
                 open=self.df["Open"],
@@ -289,6 +290,7 @@ class MarketData:
                 low=self.df["Low"],
                 close=self.df["Close"],
             ),
+            # Green arrow up located at (time, price) for long signals
             go.Scatter(
                 x=self.df["CloseDate"][self.df["LongSignal"] == 1],
                 y=self.df["Close"][self.df["LongSignal"] == 1],
@@ -298,6 +300,7 @@ class MarketData:
                 marker_color="green",
                 name="Long Signal",
             ),
+            # Red arrow down located at (time, price) for short signals
             go.Scatter(
                 x=self.df["CloseDate"][self.df["ShortSignal"] == 1],
                 y=self.df["Close"][self.df["ShortSignal"] == 1],
@@ -307,6 +310,7 @@ class MarketData:
                 marker_color="red",
                 name="Short Signal",
             ),
+            # Green cross located at (time, price) for long positions
             go.Scatter(
                 x=self.df["CloseDate"][self.df["LongPosition"] == 1],
                 y=self.df["PositionPrice"][self.df["LongPosition"] == 1],
@@ -316,6 +320,7 @@ class MarketData:
                 marker_color="green",
                 name="LongPosition position",
             ),
+            # Red cross located at (time, price) for short positions
             go.Scatter(
                 x=self.df["CloseDate"][self.df["ShortPosition"] == 1],
                 y=self.df["PositionPrice"][self.df["ShortPosition"] == 1],
@@ -326,14 +331,19 @@ class MarketData:
                 name="ShortPosition position",
             ),
         ]
+        childrens_plots = []
         for i in self.indicators:
-            for scatter in i.get_plot_scatters(self.df):
+            # Adding the data of each indicator in the main graph
+            for scatter in i.get_plot_scatters_for_main_graph(self.df):
                 data.append(scatter)
+            # Adding each indicator's plot in the dashboard
+            if (indicator_plot := i.get_indicator_graph(self.df)) is not None:
+                childrens_plots.append(indicator_plot)
 
         graph_candlestick = go.Figure(
             data=data,
             layout=dict(
-                hovermode="x", showlegend=True, xaxis=dict(rangeslider_visible=False)
+                hovermode="x", xaxis=dict(rangeslider_visible=False), legend=legend
             ),
         )
 
@@ -345,13 +355,17 @@ class MarketData:
 
         app.layout = html.Div(
             html.Div(
-                [
+                children=[
                     dcc.Graph(
                         id="graph_candlestick",
                         figure=graph_candlestick,
-                        style=dict(height=600, width=1300),
+                        style=dict(
+                            height=600,
+                            # width=1300
+                        ),
                     )
                 ]
+                + childrens_plots
             )
         )
 
@@ -370,8 +384,8 @@ class MarketData:
             elif "xaxis.range[0]" not in relOut.keys():
                 newLayout = go.Layout(
                     height=600,
-                    width=1300,
-                    showlegend=True,
+                    #     width=1300,
+                    legend=legend,
                     xaxis=dict(rangeslider_visible=False),
                     yaxis=dict(autorange=True),
                     hovermode="x",
@@ -401,8 +415,8 @@ class MarketData:
 
                 newLayout = go.Layout(
                     height=600,
-                    width=1300,
-                    showlegend=True,
+                    # width=1300,
+                    legend=legend,
                     xaxis=dict(
                         rangeslider_visible=False,
                         range=[

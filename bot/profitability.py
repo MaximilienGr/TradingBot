@@ -17,10 +17,9 @@ def get_impact(df, investment):
             raise Exception
 
         long_position_prices_list = long_position_prices.Close.tolist()
-        # TODO: Open time?
-        long_position_times_list = long_position_prices.OpenTime.tolist()
+        long_position_times_list = long_position_prices.CloseTime.tolist()
         short_position_prices_list = short_position_prices.Close.tolist()
-        short_position_times_list = short_position_prices.OpenTime.tolist()
+        short_position_times_list = short_position_prices.CloseTime.tolist()
 
         _short_position_price_memory = long_position_prices_list[0]
         _short_position_time_memory = long_position_times_list[0]
