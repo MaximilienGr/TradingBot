@@ -42,7 +42,7 @@ class BotState(BaseModel):
             case _:
                 logger.warning("O_o Wtf is that current state o_O")
                 raise Exception
-        logger.info(
+        logger.debug(
             f"\t\tTrade rentability: {round(100 * variation, 3)}% \n\t\t\t\t\t\t Portfolio: {round(self.portfolio, 3)}"
         )
 

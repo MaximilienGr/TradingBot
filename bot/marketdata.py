@@ -279,7 +279,7 @@ class MarketData:
             [self.trades_reporting, trade_details], ignore_index=True
         )
 
-    def show_candlestick_with_plotly(self):
+    def setup_dash(self) -> Dash:
         legend = dict(xanchor="left", yanchor="top", orientation="h", y=0.99, x=0.01)
         data = [
             # Candlesticks
@@ -348,7 +348,7 @@ class MarketData:
         )
 
         ################################################################################################
-        # Here to make the vertical scaling automatic when zooming
+        #                    Here to make the vertical scaling automatic when zooming                  #
         ################################################################################################
 
         app = Dash()
@@ -384,7 +384,7 @@ class MarketData:
             elif "xaxis.range[0]" not in relOut.keys():
                 newLayout = go.Layout(
                     height=600,
-                    #     width=1300,
+                    # width=1300,
                     legend=legend,
                     xaxis=dict(rangeslider_visible=False),
                     yaxis=dict(autorange=True),
@@ -432,6 +432,5 @@ class MarketData:
                 Fig["layout"] = newLayout
                 return Fig
 
-        app.run_server(debug=True, port=1101)
+        app.run_server(port=1101)
         ################################################################################################
-        # graph_candlestick.show()

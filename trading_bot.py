@@ -92,4 +92,4 @@ if __name__ == "__main__":
         )
     ) in [0, 1], "Buy/Sell mismatch O_o"
 
-    simu_market_data.show_candlestick_with_plotly()
+    simu_market_data.setup_dash()
