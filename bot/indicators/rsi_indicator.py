@@ -39,7 +39,6 @@ class RsiIndicator(Indicator):
             df,
             x=df["CloseDate"],
             y=df["RSI"],
-            title="RSI",
         )
 
         fig.add_shape(
@@ -63,13 +62,13 @@ class RsiIndicator(Indicator):
         fig.update_layout(
             yaxis=dict(range=[0, 100]),
             hovermode="x",
+            margin={"t": 0, "b": 0},
         )
 
         return dcc.Graph(
             id="rsi-graph",
             figure=fig,
             style=dict(
-                height=300,
-                # width=1300
+                height=150,
             ),
         )

@@ -343,7 +343,10 @@ class MarketData:
         graph_candlestick = go.Figure(
             data=data,
             layout=dict(
-                hovermode="x", xaxis=dict(rangeslider_visible=False), legend=legend
+                hovermode="x",
+                xaxis=dict(rangeslider_visible=False),
+                legend=legend,
+                margin={"t": 0, "b": 0},
             ),
         )
 
@@ -360,8 +363,7 @@ class MarketData:
                         id="graph_candlestick",
                         figure=graph_candlestick,
                         style=dict(
-                            height=600,
-                            # width=1300
+                            height=500,
                         ),
                     )
                 ]
@@ -383,9 +385,9 @@ class MarketData:
             # if you don't use the rangeslider to adjust the plot, then relOut.keys() won't include the key xaxis.range
             elif "xaxis.range[0]" not in relOut.keys():
                 newLayout = go.Layout(
-                    height=600,
-                    # width=1300,
+                    height=500,
                     legend=legend,
+                    margin={"t": 0, "b": 0},
                     xaxis=dict(rangeslider_visible=False),
                     yaxis=dict(autorange=True),
                     hovermode="x",
@@ -414,9 +416,9 @@ class MarketData:
                 ].max()
 
                 newLayout = go.Layout(
-                    height=600,
-                    # width=1300,
+                    height=500,
                     legend=legend,
+                    margin={"t": 0, "b": 0},
                     xaxis=dict(
                         rangeslider_visible=False,
                         range=[
