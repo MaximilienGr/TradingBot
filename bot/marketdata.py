@@ -279,6 +279,25 @@ class MarketData:
             [self.trades_reporting, trade_details], ignore_index=True
         )
 
+    def _get_extremum_between_range(self, x1, x2):
+        ymin = self.df.loc[
+            self.df["CloseDate"].between(
+                left=Timestamp(x1),
+                right=Timestamp(x2),
+                inclusive="neither",
+            ),
+            "Low",
+        ].min()
+        ymax = self.df.loc[
+            self.df["CloseDate"].between(
+                left=Timestamp(x1),
+                right=Timestamp(x2),
+                inclusive="neither",
+            ),
+            "High",
+        ].max()
+        return [ymin, ymax]
+
     def setup_dash(self) -> Dash:
         legend = dict(xanchor="left", yanchor="top", orientation="h", y=0.99, x=0.01)
         data = [
@@ -331,20 +350,21 @@ class MarketData:
                 name="ShortPosition position",
             ),
         ]
-        childrens_plots = []
+        childrens_graphs = []
         for i in self.indicators:
             # Adding the data of each indicator in the main graph
             for scatter in i.get_plot_scatters_for_main_graph(self.df):
                 data.append(scatter)
             # Adding each indicator's plot in the dashboard
-            if (indicator_plot := i.get_indicator_graph(self.df)) is not None:
-                childrens_plots.append(indicator_plot)
+            if (indicator_graph := i.get_indicator_graph(self.df)) is not None:
+                childrens_graphs.append(indicator_graph)
 
         graph_candlestick = go.Figure(
             data=data,
             layout=dict(
                 hovermode="x",
                 xaxis=dict(rangeslider_visible=False),
+                yaxis=dict(autorange=True),
                 legend=legend,
                 margin={"t": 0, "b": 0},
             ),
@@ -367,71 +387,29 @@ class MarketData:
                         ),
                     )
                 ]
-                + childrens_plots
+                + childrens_graphs
             )
         )
 
         # Server side implementation (slow)
         @app.callback(
             Output("graph_candlestick", "figure"),
-            [Input("graph_candlestick", "relayoutData")],
-            [State("graph_candlestick", "figure")],
+            Input("graph_candlestick", "relayoutData"),
+            State("graph_candlestick", "figure"),
         )
         def update_result(relOut, Fig):
-
             if relOut is None:
                 return Fig
-
             # if you don't use the rangeslider to adjust the plot, then relOut.keys() won't include the key xaxis.range
-            elif "xaxis.range[0]" not in relOut.keys():
-                newLayout = go.Layout(
-                    height=500,
-                    legend=legend,
-                    margin={"t": 0, "b": 0},
-                    xaxis=dict(rangeslider_visible=False),
-                    yaxis=dict(autorange=True),
-                    hovermode="x",
-                    template="plotly",
+            elif "xaxis.range[0]" in relOut.keys():
+                Fig["layout"]["yaxis"]["range"] = self._get_extremum_between_range(
+                    x1=Timestamp(relOut["xaxis.range[0]"]),
+                    x2=Timestamp(relOut["xaxis.range[1]"]),
                 )
+                Fig["layout"]["yaxis"]["autorange"] = False
 
-                Fig["layout"] = newLayout
                 return Fig
-
             else:
-                ymin = self.df.loc[
-                    self.df["CloseDate"].between(
-                        left=Timestamp(relOut["xaxis.range[0]"]),
-                        right=Timestamp(relOut["xaxis.range[1]"]),
-                        inclusive="neither",
-                    ),
-                    "Low",
-                ].min()
-                ymax = self.df.loc[
-                    self.df["CloseDate"].between(
-                        left=Timestamp(relOut["xaxis.range[0]"]),
-                        right=Timestamp(relOut["xaxis.range[1]"]),
-                        inclusive="neither",
-                    ),
-                    "High",
-                ].max()
-
-                newLayout = go.Layout(
-                    height=500,
-                    legend=legend,
-                    margin={"t": 0, "b": 0},
-                    xaxis=dict(
-                        rangeslider_visible=False,
-                        range=[
-                            Timestamp(relOut["xaxis.range[0]"]),
-                            Timestamp(relOut["xaxis.range[1]"]),
-                        ],
-                    ),
-                    yaxis=dict(range=[ymin, ymax]),
-                    hovermode="x",
-                    template="plotly",
-                )
-
-                Fig["layout"] = newLayout
                 return Fig
 
         app.run_server(port=1101)
