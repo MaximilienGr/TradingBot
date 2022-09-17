@@ -391,15 +391,20 @@ class MarketData:
             )
         )
 
+        childrens_graphs_State = [State(plot.id, "figure") for plot in childrens_graphs]
+        childrens_graphs_Output = [
+            Output(plot.id, "figure") for plot in childrens_graphs
+        ]
+
         # Server side implementation (slow)
         @app.callback(
-            Output("graph_candlestick", "figure"),
+            [Output("graph_candlestick", "figure")] + childrens_graphs_Output,
             Input("graph_candlestick", "relayoutData"),
-            State("graph_candlestick", "figure"),
+            [State("graph_candlestick", "figure")] + childrens_graphs_State,
         )
-        def update_result(relOut, Fig):
+        def update_result(relOut, Fig, *my_args):
             if relOut is None:
-                return Fig
+                return Fig, *my_args
             # if you don't use the rangeslider to adjust the plot, then relOut.keys() won't include the key xaxis.range
             elif "xaxis.range[0]" in relOut.keys():
                 Fig["layout"]["yaxis"]["range"] = self._get_extremum_between_range(
@@ -407,10 +412,15 @@ class MarketData:
                     x2=Timestamp(relOut["xaxis.range[1]"]),
                 )
                 Fig["layout"]["yaxis"]["autorange"] = False
-
-                return Fig
+                for plot in my_args:
+                    plot["layout"]["xaxis"]["autorange"] = False
+                    plot["layout"]["xaxis"]["range"] = [
+                        relOut["xaxis.range[0]"],
+                        relOut["xaxis.range[1]"],
+                    ]
+                return Fig, *my_args
             else:
-                return Fig
+                return Fig, *my_args
 
         app.run_server(port=1101)
         ################################################################################################
