@@ -1,7 +1,5 @@
 import pandas as pd
 from binance import Client
-from dash import Output, Input, State, dcc, html, Dash
-import plotly.graph_objects as go
 from pandas import Timestamp
 
 from bot.helpers.utils import interval_to_mili_timestamp, merge_candles
@@ -266,11 +264,11 @@ class MarketData:
         )
         trade_details = pd.DataFrame(
             data={
-                "EntryTime": [self._current_state.time],
+                "EntryTime": [self._current_state.time.round(freq="T")],
                 "EntryPrice": [self._current_state.price],
                 "Position": [self._current_state.position.name],
                 "ExitPrice": [current_price],
-                "ExitTime": [self.df.CloseDate.iloc[-1]],
+                "ExitTime": [self.df.CloseDate.iloc[-1].round(freq="T")],
                 "Variation": [variation],
                 "Portfolio": [self._current_state.portfolio],
             }
@@ -297,130 +295,3 @@ class MarketData:
             "High",
         ].max()
         return [ymin, ymax]
-
-    def setup_dash(self) -> Dash:
-        legend = dict(xanchor="left", yanchor="top", orientation="h", y=0.99, x=0.01)
-        data = [
-            # Candlesticks
-            go.Candlestick(
-                x=self.df["CloseDate"],
-                open=self.df["Open"],
-                high=self.df["High"],
-                low=self.df["Low"],
-                close=self.df["Close"],
-            ),
-            # Green arrow up located at (time, price) for long signals
-            go.Scatter(
-                x=self.df["CloseDate"][self.df["LongSignal"] == 1],
-                y=self.df["Close"][self.df["LongSignal"] == 1],
-                mode="markers",
-                marker_symbol="arrow-up",
-                marker_size=10,
-                marker_color="green",
-                name="Long Signal",
-            ),
-            # Red arrow down located at (time, price) for short signals
-            go.Scatter(
-                x=self.df["CloseDate"][self.df["ShortSignal"] == 1],
-                y=self.df["Close"][self.df["ShortSignal"] == 1],
-                mode="markers",
-                marker_symbol="arrow-down",
-                marker_size=10,
-                marker_color="red",
-                name="Short Signal",
-            ),
-            # Green cross located at (time, price) for long positions
-            go.Scatter(
-                x=self.df["CloseDate"][self.df["LongPosition"] == 1],
-                y=self.df["PositionPrice"][self.df["LongPosition"] == 1],
-                mode="markers",
-                marker_symbol="x",
-                marker_size=10,
-                marker_color="green",
-                name="LongPosition position",
-            ),
-            # Red cross located at (time, price) for short positions
-            go.Scatter(
-                x=self.df["CloseDate"][self.df["ShortPosition"] == 1],
-                y=self.df["PositionPrice"][self.df["ShortPosition"] == 1],
-                mode="markers",
-                marker_symbol="x",
-                marker_size=10,
-                marker_color="red",
-                name="ShortPosition position",
-            ),
-        ]
-        childrens_graphs = []
-        for i in self.indicators:
-            # Adding the data of each indicator in the main graph
-            for scatter in i.get_plot_scatters_for_main_graph(self.df):
-                data.append(scatter)
-            # Adding each indicator's plot in the dashboard
-            if (indicator_graph := i.get_indicator_graph(self.df)) is not None:
-                childrens_graphs.append(indicator_graph)
-
-        graph_candlestick = go.Figure(
-            data=data,
-            layout=dict(
-                hovermode="x",
-                xaxis=dict(rangeslider_visible=False),
-                yaxis=dict(autorange=True),
-                legend=legend,
-                margin={"t": 0, "b": 0},
-            ),
-        )
-
-        ################################################################################################
-        #                    Here to make the vertical scaling automatic when zooming                  #
-        ################################################################################################
-
-        app = Dash()
-
-        app.layout = html.Div(
-            html.Div(
-                children=[
-                    dcc.Graph(
-                        id="graph_candlestick",
-                        figure=graph_candlestick,
-                        style=dict(
-                            height=500,
-                        ),
-                    )
-                ]
-                + childrens_graphs
-            )
-        )
-
-        childrens_graphs_State = [State(plot.id, "figure") for plot in childrens_graphs]
-        childrens_graphs_Output = [
-            Output(plot.id, "figure") for plot in childrens_graphs
-        ]
-
-        # Server side implementation (slow)
-        @app.callback(
-            [Output("graph_candlestick", "figure")] + childrens_graphs_Output,
-            Input("graph_candlestick", "relayoutData"),
-            [State("graph_candlestick", "figure")] + childrens_graphs_State,
-        )
-        def update_result(relOut, Fig, *my_args):
-            if relOut is None:
-                return Fig, *my_args
-            # if you don't use the rangeslider to adjust the plot, then relOut.keys() won't include the key xaxis.range
-            elif "xaxis.range[0]" in relOut.keys():
-                Fig["layout"]["yaxis"]["range"] = self._get_extremum_between_range(
-                    x1=Timestamp(relOut["xaxis.range[0]"]),
-                    x2=Timestamp(relOut["xaxis.range[1]"]),
-                )
-                Fig["layout"]["yaxis"]["autorange"] = False
-                for plot in my_args:
-                    plot["layout"]["xaxis"]["autorange"] = False
-                    plot["layout"]["xaxis"]["range"] = [
-                        relOut["xaxis.range[0]"],
-                        relOut["xaxis.range[1]"],
-                    ]
-                return Fig, *my_args
-            else:
-                return Fig, *my_args
-
-        app.run_server(port=1101)
-        ################################################################################################

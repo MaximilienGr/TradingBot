@@ -2,6 +2,7 @@ import os
 
 from binance.client import Client
 
+from bot.display import setup_dash
 from bot.helpers.utils import (
     load_market_data_history,
     date_to_mili_timestamp,
@@ -41,7 +42,7 @@ if __name__ == "__main__":
 
     # Candle size
     interval = Client.KLINE_INTERVAL_1DAY
-    refresh_frequency = Client.KLINE_INTERVAL_12HOUR
+    refresh_frequency = Client.KLINE_INTERVAL_8HOUR
     simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
     simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 04:00:00")
@@ -92,4 +93,4 @@ if __name__ == "__main__":
         )
     ) in [0, 1], "Buy/Sell mismatch O_o"
 
-    simu_market_data.setup_dash()
+    setup_dash(simu_market_data)

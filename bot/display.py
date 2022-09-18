@@ -1,61 +1,204 @@
-import mplcursors
-from matplotlib import pyplot as plt
+from dash import Output, Input, State, dash_table, dcc, html, Dash
+from pandas import Timestamp
+import plotly.graph_objects as go
 
 
-def show_candlestick(df, width=4, width2=0.5):
-    # create figure
-    plt.figure(figsize=(20, 10))
+def setup_dash(market_data):
+    legend = dict(xanchor="left", yanchor="top", orientation="h", y=0.99, x=0.01)
+    data = [
+        # Candlesticks
+        go.Candlestick(
+            x=market_data.df["CloseDate"],
+            open=market_data.df["Open"],
+            high=market_data.df["High"],
+            low=market_data.df["Low"],
+            close=market_data.df["Close"],
+        ),
+        # Green arrow up located at (time, price) for long signals
+        go.Scatter(
+            x=market_data.df["CloseDate"][market_data.df["LongSignal"] == 1],
+            y=market_data.df["Close"][market_data.df["LongSignal"] == 1],
+            mode="markers",
+            marker_symbol="arrow-up",
+            marker_size=10,
+            marker_color="green",
+            name="Long Signal",
+        ),
+        # Red arrow down located at (time, price) for short signals
+        go.Scatter(
+            x=market_data.df["CloseDate"][market_data.df["ShortSignal"] == 1],
+            y=market_data.df["Close"][market_data.df["ShortSignal"] == 1],
+            mode="markers",
+            marker_symbol="arrow-down",
+            marker_size=10,
+            marker_color="red",
+            name="Short Signal",
+        ),
+        # Green cross located at (time, price) for long positions
+        go.Scatter(
+            x=market_data.df["CloseDate"][market_data.df["LongPosition"] == 1],
+            y=market_data.df["PositionPrice"][market_data.df["LongPosition"] == 1],
+            mode="markers",
+            marker_symbol="x",
+            marker_size=10,
+            marker_color="green",
+            name="LongPosition position",
+        ),
+        # Red cross located at (time, price) for short positions
+        go.Scatter(
+            x=market_data.df["CloseDate"][market_data.df["ShortPosition"] == 1],
+            y=market_data.df["PositionPrice"][market_data.df["ShortPosition"] == 1],
+            mode="markers",
+            marker_symbol="x",
+            marker_size=10,
+            marker_color="red",
+            name="ShortPosition position",
+        ),
+    ]
+    childrens_graphs = []
+    for i in market_data.indicators:
+        # Adding the data of each indicator in the main graph
+        for scatter in i.get_plot_scatters_for_main_graph(market_data.df):
+            data.append(scatter)
+        # Adding each indicator's plot in the dashboard
+        if (indicator_graph := i.get_indicator_graph(market_data.df)) is not None:
+            childrens_graphs.append(indicator_graph)
 
-    # define up and down prices
-    up = df[df.Close >= df.Open]
-    down = df[df.Close < df.Open]
-
-    # define colors to use
-    col1 = "green"
-    col2 = "red"
-
-    # plot up prices
-    plt.bar(up.CloseDate, up.Close - up.Open, width, bottom=up.Open, color=col1)
-    plt.bar(up.CloseDate, up.High - up.Close, width2, bottom=up.Close, color=col1)
-    plt.bar(up.CloseDate, up.Low - up.Open, width2, bottom=up.Open, color=col1)
-
-    # plot down prices
-    plt.bar(down.CloseDate, down.Close - down.Open, width, bottom=down.Open, color=col2)
-    plt.bar(down.CloseDate, down.High - down.Open, width2, bottom=down.Open, color=col2)
-    plt.bar(
-        down.CloseDate, down.Low - down.Close, width2, bottom=down.Close, color=col2
+    graph_candlestick = go.Figure(
+        data=data,
+        layout=dict(
+            hovermode="x",
+            xaxis=dict(rangeslider_visible=False),
+            yaxis=dict(autorange=True),
+            legend=legend,
+            margin={"t": 0, "b": 0},
+        ),
     )
 
-    # rotate x-axis tick labels
-    plt.xticks(rotation=45, ha="right")
-
-    # define the moments of buying
-    bought_dates = df.CloseDate[df["LongSignal"] == 1]
-    bought_prices = df.PositionPrice[bought_dates]
-
-    # plot the buying points
-    plt.scatter(
-        x=bought_prices.OpenTime.tolist(),
-        y=bought_prices.Open.tolist(),
-        marker=4,
-        color="c",
-        s=250,
+    trade_reporting = go.Figure(
+        data=[
+            go.Table(
+                header=dict(values=list(market_data.trades_reporting.columns)),
+                cells=dict(
+                    values=market_data.trades_reporting.transpose().values.tolist(),
+                    fill_color="lavender",
+                    align="left",
+                ),
+            )
+        ]
     )
 
-    # define the moments of selling
-    sell_dates = df.index[df["ShortSignal"] == 1]
-    sell_prices = df.PositionPrice[sell_dates].reset_index()
+    ################################################################################################
+    #                    Here to make the vertical scaling automatic when zooming                  #
+    ################################################################################################
 
-    # plot the selling moments
-    plt.scatter(
-        x=sell_prices.OpenTime.tolist(),
-        y=sell_prices.PositionPrice.tolist(),
-        marker=4,
-        color="m",
-        s=250,
+    app = Dash()
+
+    app.layout = html.Div(
+        children=[
+            html.Div(
+                children=[
+                    dcc.Graph(
+                        id="graph_candlestick",
+                        figure=graph_candlestick,
+                        style=dict(
+                            height=500,
+                        ),
+                    )
+                ]
+                + childrens_graphs
+                + [
+                    dcc.Graph(
+                        id="trade_reporting",
+                        figure=trade_reporting,
+                        style=dict(
+                            height=500,
+                        ),
+                    )
+                ]
+            ),
+        ]
     )
 
-    mplcursors.cursor(hover=True)
+    childrens_graphs_State = [State(plot.id, "figure") for plot in childrens_graphs]
+    childrens_graphs_Output = [Output(plot.id, "figure") for plot in childrens_graphs]
 
-    # display candlestick chart
-    plt.show()
+    # Server side implementation (slow)
+    @app.callback(
+        [Output("graph_candlestick", "figure")]
+        + childrens_graphs_Output
+        + [Output("trade_reporting", "figure")],
+        Input("graph_candlestick", "relayoutData"),
+        [State("graph_candlestick", "figure")]
+        + childrens_graphs_State
+        + [State("trade_reporting", "figure")],
+    )
+    def update_result(relOut, Fig, *my_args):
+        double_click_event = {"xaxis.autorange": True, "yaxis.autorange": True}
+
+        # Last value will always be the reporting table.
+        tradeReportingFig = my_args[-1]
+        my_args = my_args[:-1]
+
+        # When update is not specific
+        if relOut is None:
+            return Fig, *my_args, tradeReportingFig
+
+        # When update is about changing the xaxis
+        elif "xaxis.range[0]" in relOut.keys():
+
+            ### Updating the x/y axis for the Candlestick graph
+            Fig["layout"]["yaxis"]["range"] = market_data._get_extremum_between_range(
+                x1=Timestamp(relOut["xaxis.range[0]"]),
+                x2=Timestamp(relOut["xaxis.range[1]"]),
+            )
+            Fig["layout"]["yaxis"]["autorange"] = False
+
+            ### Updating the x/y axis for the indicators graphs
+            for plot in my_args:
+                plot["layout"]["xaxis"]["autorange"] = False
+                plot["layout"]["xaxis"]["range"] = [
+                    relOut["xaxis.range[0]"],
+                    relOut["xaxis.range[1]"],
+                ]
+
+            ### Updating the x/y boundaries for the Reporting table
+            df = market_data.trades_reporting[
+                (market_data.trades_reporting.EntryTime > relOut["xaxis.range[0]"])
+                & (market_data.trades_reporting.ExitTime < relOut["xaxis.range[1]"])
+            ]
+            tradeReportingFig["data"] = [
+                go.Table(
+                    header=dict(values=list(df.columns)),
+                    cells=dict(
+                        values=df.transpose().values.tolist(),
+                        fill_color="lavender",
+                        align="left",
+                    ),
+                )
+            ]
+            return Fig, *my_args, tradeReportingFig
+
+        # When update is about reseting the xaxis
+        elif relOut == double_click_event:
+            for plot in my_args:
+                plot["layout"]["xaxis"]["autorange"] = True
+                plot["layout"]["yaxis"]["autorange"] = True
+            df = market_data.trades_reporting
+            tradeReportingFig["data"] = [
+                go.Table(
+                    header=dict(values=list(df.columns)),
+                    cells=dict(
+                        values=df.transpose().values.tolist(),
+                        fill_color="lavender",
+                        align="left",
+                    ),
+                )
+            ]
+            return Fig, *my_args, tradeReportingFig
+
+        else:
+            return Fig, *my_args, tradeReportingFig
+
+    app.run_server(port=1101)
+    ################################################################################################
