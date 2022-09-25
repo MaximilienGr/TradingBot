@@ -2,11 +2,19 @@ import ast
 import os
 import random
 import re
-from datetime import datetime
+from dateutil import parser
 
-from binance import Client
+import csv
 
 from bot.logging_formatter import logger
+
+
+def save_list_as_csv(start_str, end_str, interval, list):
+    history_path = f"./data/{start_str}-{end_str}-{interval}-history.csv"
+    if not os.path.exists(history_path):
+        with open(history_path, "w") as fp:
+            wr = csv.writer(fp, delimiter="\n")
+            wr.writerows(list)
 
 
 def load_market_data_history(
@@ -39,7 +47,7 @@ def load_market_data_history(
 
 
 def date_to_mili_timestamp(date):
-    return int(datetime.strptime(date, "%d.%m.%Y %H:%M:%S").timestamp() * 1000)
+    return int(parser.parse(date, dayfirst=True).timestamp() * 1000)
 
 
 def interval_to_mili_timestamp(interval):

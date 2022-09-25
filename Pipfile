@@ -25,3 +25,4 @@ python_version = "3.10"
 
 [scripts]
 main = "python ./trading_bot.py"
+download = "python ./download_dates.py"
