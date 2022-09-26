@@ -9,6 +9,10 @@ from bot.logging_formatter import logger
 
 
 class MarketData:
+    """
+    Main class. This class contains the parameters of the bot: state, market-parameters, dataframe.
+    """
+
     def __init__(
         self,
         start_str,
