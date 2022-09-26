@@ -16,18 +16,18 @@ class RsiIndicator(Indicator):
 
     def set_indicator(self, df):
         # TODO: pourquoi les premières valeurs sont à 0 ? Avant c'était des NaN
-        df["RSI"] = momentum.rsi(df.Close, window=self.rsi_window)
+        df[("indicators", "RSI")] = momentum.rsi(df.Close, window=self.rsi_window)
         return df
 
     def should_long(self, df):
         return True
-        # if df["RSI"].iloc[-1] > self.rsi_buying_trigger:
+        # if df[("indicators", "RSI")].iloc[-1] > self.rsi_buying_trigger:
         #     return True
         # return False
 
     def should_short(self, df):
         return True
-        # if df["RSI"].iloc[-1] > self.rsi_selling_trigger:
+        # if df[("indicators", "RSI")].iloc[-1] > self.rsi_selling_trigger:
         #     return True
         # return False
 
@@ -38,7 +38,7 @@ class RsiIndicator(Indicator):
         fig = px.line(
             df,
             x=df["CloseDate"],
-            y=df["RSI"],
+            y=df[("indicators", "RSI")],
         )
 
         fig.add_shape(

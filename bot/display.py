@@ -5,6 +5,15 @@ import plotly.graph_objects as go
 
 def setup_dash(market_data):
     legend = dict(xanchor="left", yanchor="top", orientation="h", y=0.99, x=0.01)
+    trading_reporting_columns = [
+        "EntryTime",
+        "EntryPrice",
+        "Position",
+        "ExitPrice",
+        "ExitTime",
+        "Variation",
+        "Portfolio",
+    ]
     data = [
         # Candlesticks
         go.Candlestick(
@@ -78,9 +87,11 @@ def setup_dash(market_data):
     trade_reporting = go.Figure(
         data=[
             go.Table(
-                header=dict(values=list(market_data.trades_reporting.columns)),
+                header=dict(values=trading_reporting_columns),
                 cells=dict(
-                    values=market_data.trades_reporting.transpose().values.tolist(),
+                    values=market_data.trades_reporting[trading_reporting_columns]
+                    .transpose()
+                    .values.tolist(),
                     fill_color="lavender",
                     align="left",
                 ),
@@ -166,7 +177,7 @@ def setup_dash(market_data):
             df = market_data.trades_reporting[
                 (market_data.trades_reporting.EntryTime > relOut["xaxis.range[0]"])
                 & (market_data.trades_reporting.ExitTime < relOut["xaxis.range[1]"])
-            ]
+            ][trading_reporting_columns]
             tradeReportingFig["data"] = [
                 go.Table(
                     header=dict(values=list(df.columns)),
@@ -184,7 +195,7 @@ def setup_dash(market_data):
             for plot in my_args:
                 plot["layout"]["xaxis"]["autorange"] = True
                 plot["layout"]["yaxis"]["autorange"] = True
-            df = market_data.trades_reporting
+            df = market_data.trades_reporting[trading_reporting_columns]
             tradeReportingFig["data"] = [
                 go.Table(
                     header=dict(values=list(df.columns)),

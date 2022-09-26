@@ -48,7 +48,7 @@ if __name__ == "__main__":
     #########################################################
     # Candle size
     interval = Client.KLINE_INTERVAL_1DAY
-    refresh_frequency = Client.KLINE_INTERVAL_8HOUR
+    refresh_frequency = Client.KLINE_INTERVAL_4HOUR
     simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00 GMT")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
     simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 00:00:00 GMT")

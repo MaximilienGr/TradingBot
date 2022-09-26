@@ -1,4 +1,4 @@
-import ta
+from ta import trend
 from plotly.graph_objs import Scatter
 
 from bot.indicators.indicator import Indicator
@@ -12,7 +12,7 @@ class MacdIndicator(Indicator):
         self.macd_window_sign = macd_window_sign
 
     def set_indicator(self, df):
-        df["MACD"] = ta.trend.macd_diff(
+        df[("indicators", "MACD")] = trend.macd_diff(
             df.Close,
             self.macd_window_slow,
             self.macd_window_fast,
@@ -21,12 +21,12 @@ class MacdIndicator(Indicator):
         return df
 
     def should_long(self, df):
-        if df["MACD"].iloc[-1] > 0:
+        if df[("indicators", "MACD")].iloc[-1] > 0:
             return True
         return False
 
     def should_short(self, df):
-        if df["MACD"].iloc[-1] < 0:
+        if df[("indicators", "MACD")].iloc[-1] < 0:
             return True
         return False
 

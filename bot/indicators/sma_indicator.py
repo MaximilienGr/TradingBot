@@ -10,7 +10,9 @@ class SmaIndicator(Indicator):
         super().__init__(**kwargs)
 
     def set_indicator(self, df):
-        df["SMA" + str(self.value)] = df["Close"].rolling(self.value).mean()
+        df[("indicators", "SMA" + str(self.value))] = (
+            df["Close"].rolling(self.value).mean()
+        )
         return df
 
     def should_long(self, df):
@@ -23,7 +25,7 @@ class SmaIndicator(Indicator):
         return [
             go.Scatter(
                 x=df["CloseDate"],
-                y=df["SMA" + str(self.value)],
+                y=df[("indicators", "SMA" + str(self.value))],
                 name="SMA" + str(self.value),
                 line=dict(color=get_random_color()),
                 opacity=0.7,

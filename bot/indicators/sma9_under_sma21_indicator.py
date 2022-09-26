@@ -9,22 +9,24 @@ class Sma9_21Indicator(Indicator):
         super().__init__(**kwargs)
 
     def set_indicator(self, df):
-        df["SMA9"] = df["Close"].rolling(9).mean()
-        df["SMA21"] = df["Close"].rolling(21).mean()
-        df["dSMA9"] = (df["SMA9"] - df["SMA9"].shift(1)) / (
-            df["CloseTime"] - df["CloseTime"].shift(1)
+        df[("indicators", "SMA9")] = df["Close"].rolling(9).mean()
+        df[("indicators", "SMA21")] = df["Close"].rolling(21).mean()
+        df[("indicators", "dSMA9")] = (
+            df[("indicators", "SMA9")] - df[("indicators", "SMA9")].shift(1)
+        ) / (df["CloseTime"] - df["CloseTime"].shift(1))
+        df[("indicators", "dSMA21")] = (
+            df[("indicators", "SMA21")] - df[("indicators", "SMA21")].shift(1)
+        ) / (df["CloseTime"] - df["CloseTime"].shift(1))
+        df[("indicators", "SMA9_under_SMA21_trigger")] = (
+            df[("indicators", "SMA9")] < df[("indicators", "SMA21")]
         )
-        df["dSMA21"] = (df["SMA21"] - df["SMA21"].shift(1)) / (
-            df["CloseTime"] - df["CloseTime"].shift(1)
-        )
-        df["SMA9_under_SMA21_trigger"] = df["SMA9"] < df["SMA21"]
         return df
 
     def should_long(self, df):
         # if trigger was at false and now it at true
         # i.e. SMA9 is going above SMA21
-        SMA9_was_under_SMA21 = df["SMA9_under_SMA21_trigger"].iloc[-2]
-        SMA9_is_under_SMA21 = df["SMA9_under_SMA21_trigger"].iloc[-1]
+        SMA9_was_under_SMA21 = df[("indicators", "SMA9_under_SMA21_trigger")].iloc[-2]
+        SMA9_is_under_SMA21 = df[("indicators", "SMA9_under_SMA21_trigger")].iloc[-1]
         # SMA9_derivative_positive = df["dSMA9"].iloc[-1] > 0
         # SMA9_is_close_to_SMA21 = df["SMA9"].iloc[-1] / df["SMA21"].iloc[-1] > 0.997
         if SMA9_was_under_SMA21 and not SMA9_is_under_SMA21:
@@ -36,8 +38,8 @@ class Sma9_21Indicator(Indicator):
     def should_short(self, df):
         # if trigger was at true and now it at false
         # i.e. SMA9 is going under SMA21
-        SMA9_was_under_SMA21 = df["SMA9_under_SMA21_trigger"].iloc[-2]
-        SMA9_is_under_SMA21 = df["SMA9_under_SMA21_trigger"].iloc[-1]
+        SMA9_was_under_SMA21 = df[("indicators", "SMA9_under_SMA21_trigger")].iloc[-2]
+        SMA9_is_under_SMA21 = df[("indicators", "SMA9_under_SMA21_trigger")].iloc[-1]
         # SMA9_derivative_negative = df["dSMA9"].iloc[-1] < 0
         # SMA21_is_close_to_SMA9 = df["SMA9"].iloc[-1] / df["SMA21"].iloc[-1] < 1.003
         if not SMA9_was_under_SMA21 and SMA9_is_under_SMA21:
@@ -50,7 +52,7 @@ class Sma9_21Indicator(Indicator):
         return [
             go.Scatter(
                 x=df["CloseDate"],
-                y=df["SMA21"],
+                y=df[("indicators", "SMA21")],
                 name="SMA21",
                 line=dict(color=get_random_color()),
                 opacity=0.7,
@@ -58,7 +60,7 @@ class Sma9_21Indicator(Indicator):
             ),
             go.Scatter(
                 x=df["CloseDate"],
-                y=df["SMA9"],
+                y=df[("indicators", "SMA9")],
                 name="SMA9",
                 line=dict(color=get_random_color()),
                 opacity=0.7,

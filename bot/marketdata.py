@@ -275,6 +275,14 @@ class MarketData:
         variation = round(
             self._current_state.get_variation(current_price=current_price) * 100, 3
         )
+
+        # Selecting only indicators
+        indicators_columns = self.df[
+            [column for column in self.df if type(column) == tuple]
+        ]
+        indicators_columns.columns = [
+            column[1] for column in indicators_columns.columns
+        ]
         trade_details = pd.DataFrame(
             data={
                 "EntryTime": [self._current_state.time.round(freq="T")],
@@ -285,6 +293,7 @@ class MarketData:
                 "Variation": [variation],
                 "Portfolio": [self._current_state.portfolio],
             }
+            | indicators_columns.iloc[-1].to_dict()
         )
         self.trades_reporting = pd.concat(
             [self.trades_reporting, trade_details], ignore_index=True

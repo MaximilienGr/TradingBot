@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-import ta
+from ta import momentum
 from plotly.graph_objs import Scatter
 
 from bot.indicators.indicator import Indicator
@@ -16,7 +16,7 @@ class StochasticIndicator(Indicator):
 
     def set_indicator(self, df):
         # What is smooth window ?
-        df["%K"] = ta.momentum.stoch(
+        df["%K"] = momentum.stoch(
             df.High,
             df.Low,
             df.Close,
