@@ -10,7 +10,7 @@ from bot.helpers.utils import (
 from bot.indicators.rsi_indicator import RsiIndicator
 from bot.logging_formatter import logger
 from bot.marketdata import MarketData
-from bot.mock.mock_client import MockClient
+from bot.client.mock_client import MockClient
 from bot.strategy import strategy_testing
 
 from bot.indicators.sma9_under_sma21_indicator import Sma9_21Indicator
@@ -43,12 +43,12 @@ if __name__ == "__main__":
     # Candle size
     interval = Client.KLINE_INTERVAL_1DAY
     refresh_frequency = Client.KLINE_INTERVAL_8HOUR
-    simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00")
+    simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00 GMT")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
-    simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 04:00:00")
+    simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 00:00:00 GMT")
 
     history_start_timestamp = simu_market_stop_timestamp
-    history_stop_timestamp = date_to_mili_timestamp("23.04.2022 18:00:00")
+    history_stop_timestamp = date_to_mili_timestamp("26.09.2022 18:00:00")
 
     market_data_history = load_market_data_history(
         client,

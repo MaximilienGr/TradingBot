@@ -34,9 +34,11 @@ class MarketData:
         self.indicators: list[Indicator] = indicators
         self.stop_limit_percentage = stop_limit_percentage
         self.stop_loss_percentage = stop_loss_percentage
-        self.refresh_frequency = interval_to_mili_timestamp(refresh_frequency)
+        self.refresh_frequency = refresh_frequency
         if not data:
-            data = self._get_data(start_str=self.start_str, end_str=self.end_str)
+            data = self._get_data(
+                interval=self.interval, start_str=self.start_str, end_str=self.end_str
+            )
         self.df = pd.DataFrame(data)
         self.trades_reporting = pd.DataFrame()
         self.apply_indicators()
@@ -108,43 +110,48 @@ class MarketData:
                     )
                     self.quit_position()
 
-    def _get_data(self, start_str, end_str):
+    def _get_data(self, interval, start_str, end_str):
         """Get all data from binance
         :param start_str : Timestamp to start fetching data from.
         :param end_str: Timestamp to stop fetching data from"""
-        frame = pd.DataFrame(
-            self.client.get_historical_klines(
-                symbol=self.symbol,
-                interval=self.interval,
-                start_str=start_str,
-                end_str=end_str,
+        try:
+            # logger.debug(f"[Fetching data] {pd.Timestamp(start_str * 1000000)} -> {pd.Timestamp(end_str * 1000000)}")
+
+            frame = pd.DataFrame(
+                self.client.get_historical_klines(
+                    symbol=self.symbol,
+                    interval=interval,
+                    start_str=start_str,
+                    end_str=end_str,
+                )
             )
-        )
-        # Formatting the data
-        frame = frame.iloc[:, :7]
-        frame.columns = [
-            "OpenTime",
-            "Open",
-            "High",
-            "Low",
-            "Close",
-            "Volume",
-            "CloseTime",
-        ]
-        frame["PositionPrice"] = 0
-        frame = frame.astype(float)
-        frame[
-            [
-                "LongSignal",  # Signal for a Long position
-                "ShortSignal",  # Signal for a Short position
-                "LongPosition",  # When True, means that a long position has been set
-                "ShortPosition",  # When True, means that a short position has been set
-                "isClosed",  # When True, means that the current candle is closed
+            # Formatting the data
+            frame = frame.iloc[:, :7]
+            frame.columns = [
+                "OpenTime",
+                "Open",
+                "High",
+                "Low",
+                "Close",
+                "Volume",
+                "CloseTime",
             ]
-        ] = False
-        frame["OpenDate"] = pd.to_datetime(frame["OpenTime"], unit="ms")
-        frame["CloseDate"] = pd.to_datetime(frame["CloseTime"], unit="ms")
-        return frame
+            frame["PositionPrice"] = 0
+            frame = frame.astype(float)
+            frame[
+                [
+                    "LongSignal",  # Signal for a Long position
+                    "ShortSignal",  # Signal for a Short position
+                    "LongPosition",  # When True, means that a long position has been set
+                    "ShortPosition",  # When True, means that a short position has been set
+                    "isClosed",  # When True, means that the current candle is closed
+                ]
+            ] = False
+            frame["OpenDate"] = pd.to_datetime(frame["OpenTime"], unit="ms")
+            frame["CloseDate"] = pd.to_datetime(frame["CloseTime"], unit="ms")
+            return frame
+        except Exception as err:
+            logger.error(err)
 
     def update_data(self):
         """
@@ -154,8 +161,10 @@ class MarketData:
         and merge it with the latest candle.
         """
         start_str = int(self.df.CloseTime.iloc[-1])
-        end_str = start_str + self.refresh_frequency
-        new_candle = self._get_data(start_str=start_str, end_str=end_str)
+        end_str = start_str + interval_to_mili_timestamp(self.refresh_frequency)
+        new_candle = self._get_data(
+            interval=self.refresh_frequency, start_str=start_str, end_str=end_str
+        )
         # Update of the last candle if it was not closed
         if not self.df.iloc[-1]["isClosed"]:
             old_candle = self.df.tail(1)
