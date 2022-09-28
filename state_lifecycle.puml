@@ -1,0 +1,28 @@
+@startuml
+state None : No position
+state Short : Short position
+state Long : Long position
+
+[*] --> None
+
+state shouldShort <<choice>>
+state shouldLong <<choice>>
+state shouldQuit <<choice>>
+
+None -l[#black]-> shouldShort: ShouldShort?
+shouldShort -r[#red]-> None : No
+
+None -r[#black]-> shouldLong : ShouldLong?
+shouldLong -l[#red]-> None : No
+
+shouldShort -d[#green]-> Short : Yes
+shouldLong -d[#green]-> Long :  Yes
+
+Long -l[#black]-> shouldQuit : ShouldQuit?
+Short -r[#black]-> shouldQuit : ShouldQuit?
+
+shouldQuit -r[#red]-> Long : No
+shouldQuit -l[#red]-> Short : No
+
+shouldQuit -u[#green]-> None : Yes
+@enduml
