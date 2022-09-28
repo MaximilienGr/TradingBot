@@ -21,6 +21,9 @@ class SmaIndicator(Indicator):
     def should_short(self, df):
         return True
 
+    def should_quit(self, df, position):
+        return False
+
     def get_plot_scatters_for_main_graph(self, df) -> list[go.Scatter]:
         return [
             go.Scatter(

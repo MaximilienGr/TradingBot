@@ -94,6 +94,9 @@ class StochasticIndicator(Indicator):
         )
         return (stoch_trigger_indicator | stoch_cross_trigger_indicator)[-1]
 
+    def should_quit(self, df, position):
+        return False
+
     def get_plot_scatters_for_main_graph(self, df) -> list[Scatter]:
         return []
 

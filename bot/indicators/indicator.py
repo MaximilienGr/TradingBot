@@ -37,6 +37,16 @@ class Indicator(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def should_quit(self, df, position) -> bool:
+        """
+        Returns True if the indicator says conditions are bad to be in market
+        :param position:
+        :param df: DataFrame that is used to trigger sell according to the current indicator
+        :return: bool
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def get_plot_scatters_for_main_graph(self, df) -> list[Scatter]:
         """
         Returns the Scatter to be added to main graph

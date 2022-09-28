@@ -28,7 +28,7 @@ class MarketData:
         stop_loss_percentage=0.05,
         refresh_frequency=Client.KLINE_INTERVAL_1HOUR,
     ):
-        self._current_state = BotState(portfolio=portfolio)
+        self.current_state = BotState(portfolio=portfolio)
         self.symbol = symbol
         self.interval = interval
         self.start_str = start_str
@@ -55,8 +55,8 @@ class MarketData:
         """
         if self.df.ShortPosition.iloc[-1] or self.df.LongPosition.iloc[-1]:
             return False
-        match self._current_state.position:
-            case Position.NONE | Position.UNDEFINED | Position.SHORT:
+        match self.current_state.position:
+            case Position.NONE | Position.SHORT:
                 return self.df.LongSignal.iloc[-1]
             case Position.LONG:
                 return False
@@ -69,23 +69,38 @@ class MarketData:
         """
         if self.df.ShortPosition.iloc[-1] or self.df.LongPosition.iloc[-1]:
             return False
-        match self._current_state.position:
-            case Position.NONE | Position.UNDEFINED | Position.LONG:
+        match self.current_state.position:
+            case Position.NONE | Position.LONG:
                 return self.df.ShortSignal.iloc[-1]
             case Position.SHORT:
                 return False
 
-    def protect_funds(self):
+    def should_quit(self):
+        """
+        If under stoploss, then quit
+        If one indicator says should_quit, then quit
+        """
+        # TODO: Ponderation entre les indicateurs
+        _should_quit_indicators = False
+        for indicator in self.indicators:
+            _should_quit_indicators = (
+                indicator.should_quit(df=self.df, position=self.current_state.position)
+                or _should_quit_indicators
+            )
+
+        return self._protect_funds() or _should_quit_indicators
+
+    def _protect_funds(self):
         """
         Stop the bleeding when it goes not well
         Take profit when it goes very well
         """
-        match self._current_state.position:
+        match self.current_state.position:
             case Position.NONE:
                 pass
             case Position.SHORT:
                 # StopLoss to stop bleeding in short positions
-                last_short_position_price = self._current_state.price
+                last_short_position_price = self.current_state.price
                 stop_loss_activated = self.df.Close.iloc[
                     -1
                 ] >= last_short_position_price * (1 + self.stop_loss_percentage)
@@ -95,12 +110,12 @@ class MarketData:
                 # For indicators saying True, if one of the stops is True return False
                 if stop_loss_activated or stop_limit_activated:
                     logger.error(
-                        f"Stop activated for {self._current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
+                        f"Stop activated for {self.current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
                     )
-                    self.quit_position()
+                    return True
             case Position.LONG:
                 # StopLoss to stop bleeding in long positions
-                last_long_position_price = self._current_state.price
+                last_long_position_price = self.current_state.price
                 stop_loss_activated = self.df.Close.iloc[
                     -1
                 ] <= last_long_position_price * (1 - self.stop_loss_percentage)
@@ -110,9 +125,10 @@ class MarketData:
                 # For indicators saying True, if one of the stops is True return False
                 if stop_loss_activated or stop_limit_activated:
                     logger.error(
-                        f"Stop activated for {self._current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})   "
+                        f"Stop activated for {self.current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})   "
                     )
-                    self.quit_position()
+                    return True
+        return False
 
     def _get_data(self, interval, start_str, end_str):
         """Get all data from binance
@@ -201,6 +217,7 @@ class MarketData:
         'ShortSignal': decision to sell or not.
         All the indicators sending True are needed to buy to have
         """
+        # TODO: Ponderation entre les indicateurs
         should_buy = True
         for indicator in self.indicators:
             should_buy = indicator.should_long(df=self.df) and should_buy
@@ -217,15 +234,16 @@ class MarketData:
         Take a long position
         :return: None
         """
-        if self._current_state.position == Position.SHORT:
-            self.quit_position()
+        if self.current_state.position != Position.NONE:
+            raise Exception("Trying to Long while position not quitted properly")
+
         # TODO: Use the client to go long position
         logger.info(
             f"Taking LONG position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
         )
         self.df.at[self.df.index[-1], "LongPosition"] = True
         self.df.at[self.df.index[-1], "PositionPrice"] = self.df.Close.iloc[-1]
-        self._current_state._update_position(
+        self.current_state._update_position(
             new_position=Position.LONG,
             new_time=self.df.CloseDate.iloc[-1],
             new_price=self.df.Close.iloc[-1],
@@ -236,15 +254,15 @@ class MarketData:
         Take a short position
         :return: None
         """
-        if self._current_state.position == Position.LONG:
-            self.quit_position()
+        if self.current_state.position != Position.NONE:
+            raise Exception("Trying to Long while position not quitted properly")
         # TODO: Use the client to go short position
         logger.warning(
             f"Taking SHORT position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
         )
         self.df.at[self.df.index[-1], "ShortPosition"] = True
         self.df.at[self.df.index[-1], "PositionPrice"] = self.df.Close.iloc[-1]
-        self._current_state._update_position(
+        self.current_state._update_position(
             new_position=Position.SHORT,
             new_time=self.df.CloseDate.iloc[-1],
             new_price=self.df.Close.iloc[-1],
@@ -255,9 +273,10 @@ class MarketData:
         Quit the current position and updates the reporting DataFrame
         :return:
         """
+        # if self.current_state.position is
         # TODO: Use the client to quit position
         self.update_trade_reporting()
-        self._current_state._quit_position(
+        self.current_state._quit_position(
             current_time=self.df.CloseDate.iloc[-1],
             current_price=self.df.Close.iloc[-1],
         )
@@ -267,13 +286,13 @@ class MarketData:
         Add new row to the DataFrame when quitting a position.
         That DataFrame sums up all the trades that have been done.
         """
-        # TODO: Mettre plusieurs niveau dans les noms de colonnes (par ex: taking position/ quitting position)
-        # avec ces niveau on peut avoir les datas des moments de prises de position pour pouvoir faire du ML dessus ??
-        # Et ca permet aussi d'avoir une premiere étape pour analyser pourquoi les calls étaient mauvais ?
-        # Comme ca ensuite on peut mieux filter et avoir de meilleurs signaux de prise de position
+        # We don't update if there is no position
+        if self.current_state.position == Position.NONE:
+            return
+
         current_price = self.df.Close.iloc[-1]
         variation = round(
-            self._current_state.get_variation(current_price=current_price) * 100, 3
+            self.current_state.get_variation(current_price=current_price) * 100, 3
         )
 
         # Selecting only indicators
@@ -285,13 +304,13 @@ class MarketData:
         ]
         trade_details = pd.DataFrame(
             data={
-                "EntryTime": [self._current_state.time.round(freq="T")],
-                "EntryPrice": [self._current_state.price],
-                "Position": [self._current_state.position.name],
+                "EntryTime": [self.current_state.time.round(freq="T")],
+                "EntryPrice": [self.current_state.price],
+                "Position": [self.current_state.position.name],
                 "ExitPrice": [current_price],
                 "ExitTime": [self.df.CloseDate.iloc[-1].round(freq="T")],
                 "Variation": [variation],
-                "Portfolio": [self._current_state.portfolio],
+                "Portfolio": [self.current_state.portfolio],
             }
             | indicators_columns.iloc[-1].to_dict()
         )

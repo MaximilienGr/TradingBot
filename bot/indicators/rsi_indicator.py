@@ -31,12 +31,17 @@ class RsiIndicator(Indicator):
         #     return True
         # return False
 
+    def should_quit(self, df, position):
+        return False
+        # if df[("indicators", "RSI")].iloc[-1] > self.rsi_selling_trigger:
+        #     return True
+        # return False
+
     def get_plot_scatters_for_main_graph(self, df):
         return []
 
     def get_indicator_graph(self, df) -> dcc.Graph:
         fig = px.line(
-            df,
             x=df["CloseDate"],
             y=df[("indicators", "RSI")],
         )

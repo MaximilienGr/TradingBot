@@ -30,6 +30,9 @@ class MacdIndicator(Indicator):
             return True
         return False
 
+    def should_quit(self, df, position):
+        return False
+
     def get_plot_scatters_for_main_graph(self, df) -> list[Scatter]:
         return []
 

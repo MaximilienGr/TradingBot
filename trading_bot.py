@@ -60,7 +60,7 @@ if __name__ == "__main__":
     #    All indicator that will be used to decide          #
     #########################################################
     sma9_21_indicator = Sma9_21Indicator()
-    rsi_indicator = RsiIndicator()
+    # rsi_indicator = RsiIndicator()
 
     #########################################################
     #  Main object. Containing all the data and decisions   #
@@ -75,7 +75,7 @@ if __name__ == "__main__":
         client=client,
         indicators=[
             sma9_21_indicator,
-            rsi_indicator,
+            # rsi_indicator,
         ],
         stop_limit_percentage=stop_limit_percentage,
         stop_loss_percentage=stop_loss_percentage,

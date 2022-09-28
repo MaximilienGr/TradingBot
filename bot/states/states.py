@@ -8,9 +8,8 @@ from bot.logging_formatter import logger
 
 class Position(Enum):
     NONE = 1
-    UNDEFINED = 2
-    LONG = 3
-    SHORT = 4
+    LONG = 2
+    SHORT = 3
 
 
 class BotState(BaseModel):
@@ -20,20 +19,19 @@ class BotState(BaseModel):
     time: the time when the position was taken
     """
 
-    position: Position = Position.UNDEFINED
+    position: Position = Position.NONE
     price: float | None = None
     time: pd.Timestamp | None = None
     portfolio: float = 0
 
     def _quit_position(self, current_time, current_price):
-        logger.error(
-            f"Quitting {self.position.name} position at {current_price} ({current_time})"
-        )
         match self.position:
             case Position.NONE:
-                logger.warning("O_o Position quitted while no position set o_O")
-                raise Exception
+                pass
             case Position.SHORT | Position.LONG:
+                logger.error(
+                    f"Quitting {self.position.name} position at {current_price} ({current_time})"
+                )
                 variation = self.get_variation(current_price)
                 self.position = Position.NONE
                 self.portfolio *= 1 + variation
@@ -42,21 +40,20 @@ class BotState(BaseModel):
             case _:
                 logger.warning("O_o Wtf is that current state o_O")
                 raise Exception
-        logger.debug(
-            f"\t\tTrade rentability: {round(100 * variation, 3)}% \n\t\t\t\t\t\t Portfolio: {round(self.portfolio, 3)}"
-        )
+        # logger.debug(
+        #     f"\t\tTrade rentability: {round(100 * variation, 3)}% \n\t\t\t\t\t\t Portfolio: {round(self.portfolio, 3)}"
+        # )
 
     def get_variation(self, current_price):
         match self.position:
-            case Position.NONE:
-                logger.warning("O_o Position quitted while no position set o_O")
-                raise Exception
             case Position.SHORT:
                 return (self.price - current_price) / current_price
             case Position.LONG:
                 return (current_price - self.price) / current_price
             case _:
-                logger.warning("O_o Wtf is that current state o_O")
+                logger.warning(
+                    "O_o Wtf is that current state when trying to get variation o_O"
+                )
                 raise Exception
 
     def _update_position(
@@ -69,7 +66,7 @@ class BotState(BaseModel):
                     "O_o Setting a position that has not been quitted properly o_O"
                 )
                 raise Exception
-            case Position.NONE | Position.UNDEFINED:
+            case Position.NONE:
                 self.position = new_position
                 self.price = new_price
                 self.time = new_time
