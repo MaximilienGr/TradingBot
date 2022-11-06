@@ -22,7 +22,7 @@ def load_market_data_history(
 ):
     history_path = f"./data/{history_start_timestamp}-{history_stop_timestamp}-{refresh_frequency}-history"
     if os.path.exists(history_path):
-        logger.debug("::Loading:: market_data_history from local storage")
+        logger.info("::Loading:: market_data_history from local storage")
         market_data_history = []
         # open file and read the content in a list
         with open(history_path, "r") as fp:
@@ -32,7 +32,7 @@ def load_market_data_history(
                 # add current item to the list
                 market_data_history.append(ast.literal_eval(x))
     else:
-        logger.debug("::Loading:: market_data_history from client")
+        logger.info("::Loading:: market_data_history from client")
         market_data_history = client.get_historical_klines(
             symbol=symbol,
             interval=refresh_frequency,

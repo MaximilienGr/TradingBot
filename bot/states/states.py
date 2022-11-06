@@ -29,7 +29,7 @@ class BotState(BaseModel):
             case Position.NONE:
                 pass
             case Position.SHORT | Position.LONG:
-                logger.error(
+                logger.debug(
                     f"Quitting {self.position.name} position at {current_price} ({current_time})"
                 )
                 variation = self.get_variation(current_price)
@@ -38,7 +38,7 @@ class BotState(BaseModel):
                 self.price = None
                 self.time = None
             case _:
-                logger.warning("O_o Wtf is that current state o_O")
+                logger.error("O_o Wtf is that current state o_O")
                 raise Exception
         # logger.debug(
         #     f"\t\tTrade rentability: {round(100 * variation, 3)}% \n\t\t\t\t\t\t Portfolio: {round(self.portfolio, 3)}"
@@ -51,7 +51,7 @@ class BotState(BaseModel):
             case Position.LONG:
                 return (current_price - self.price) / current_price
             case _:
-                logger.warning(
+                logger.error(
                     "O_o Wtf is that current state when trying to get variation o_O"
                 )
                 raise Exception
@@ -62,7 +62,7 @@ class BotState(BaseModel):
         """When you change position, you'll reset your params and calculate the % of variation"""
         match self.position:
             case Position.SHORT | Position.LONG:
-                logger.warning(
+                logger.error(
                     "O_o Setting a position that has not been quitted properly o_O"
                 )
                 raise Exception
@@ -71,5 +71,5 @@ class BotState(BaseModel):
                 self.price = new_price
                 self.time = new_time
             case _:
-                logger.warning("O_o Wtf is the current state o_O")
+                logger.error("O_o Wtf is the current state o_O")
                 raise Exception

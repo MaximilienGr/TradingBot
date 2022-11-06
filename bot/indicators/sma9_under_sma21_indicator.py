@@ -10,8 +10,8 @@ class Sma9_21Indicator(Indicator):
         super().__init__(**kwargs)
 
     def set_indicator(self, df):
-        df[("indicators", "SMA9")] = df["Close"].rolling(9).mean()
-        df[("indicators", "SMA21")] = df["Close"].rolling(21).mean()
+        df[("indicators", "SMA9")] = df["Close"].rolling(10).mean()
+        df[("indicators", "SMA21")] = df["Close"].rolling(20).mean()
 
         df[("indicators", "dSMA9")] = (
             df[("indicators", "SMA9")] - df[("indicators", "SMA9")].shift(1)

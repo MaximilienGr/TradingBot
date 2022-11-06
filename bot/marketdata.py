@@ -109,7 +109,7 @@ class MarketData:
                 ] <= last_short_position_price * (1 - self.stop_limit_percentage)
                 # For indicators saying True, if one of the stops is True return False
                 if stop_loss_activated or stop_limit_activated:
-                    logger.error(
+                    logger.debug(
                         f"Stop activated for {self.current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
                     )
                     return True
@@ -124,7 +124,7 @@ class MarketData:
                 ] >= last_long_position_price * (1 + self.stop_limit_percentage)
                 # For indicators saying True, if one of the stops is True return False
                 if stop_loss_activated or stop_limit_activated:
-                    logger.error(
+                    logger.debug(
                         f"Stop activated for {self.current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})   "
                     )
                     return True
@@ -257,7 +257,7 @@ class MarketData:
         if self.current_state.position != Position.NONE:
             raise Exception("Trying to Long while position not quitted properly")
         # TODO: Use the client to go short position
-        logger.warning(
+        logger.info(
             f"Taking SHORT position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
         )
         self.df.at[self.df.index[-1], "ShortPosition"] = True

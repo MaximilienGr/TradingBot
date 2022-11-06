@@ -7,7 +7,8 @@ from bot.helpers.utils import (
     load_market_data_history,
     date_to_mili_timestamp,
 )
-from bot.indicators.rsi_indicator import RsiIndicator
+
+# from bot.indicators.rsi_indicator import RsiIndicator
 from bot.logging_formatter import logger
 from bot.marketdata import MarketData
 from bot.client.mock_client import MockClient
@@ -30,25 +31,25 @@ if __name__ == "__main__":
     #                  General parameters                   #
     #########################################################
     # Which pair you want to trade
-    symbol = "BTCUSDT"
+    SYMBOL = "BTCUSDT"
     # Number of delay windows allowed to trigger a buy according to the stochastic indicator
-    lags = 3
+    LAGS = 3
     # Money initially invested
-    portfolio = 1000
+    PORTFOLIO = 1000
     # Losing percentage admitted before quiting position. 0.05 == 5%
-    stop_loss_percentage = 0.05
+    STOP_LOSS_PERCENTAGE = 0.05
     # Maximum wining percentage admitted before quiting position 1 == 100%
-    stop_limit_percentage = 1
+    STOP_LIMIT_PERCENTAGE = 1
 
-    logger.warning(f"Trading {symbol}")  # yellow
-    logger.warning(f"Initial investment {portfolio}")  # yellow
+    logger.info("Trading %s", SYMBOL)  # yellow
+    logger.info("Initial investment %s", PORTFOLIO)  # yellow
 
     #########################################################
     #                  Time parameters parameters           #
     #########################################################
     # Candle size
-    interval = Client.KLINE_INTERVAL_1DAY
-    refresh_frequency = Client.KLINE_INTERVAL_4HOUR
+    INTERVAL = Client.KLINE_INTERVAL_1HOUR
+    REFRESH_FREQUENCY = Client.KLINE_INTERVAL_1HOUR
     simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00 GMT")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
     simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 00:00:00 GMT")
@@ -68,18 +69,18 @@ if __name__ == "__main__":
     simu_market_data = MarketData(
         start_str=simu_market_start_timestamp,
         end_str=simu_market_stop_timestamp,
-        symbol=symbol,
-        portfolio=portfolio,
-        interval=interval,
-        lags=lags,
+        symbol=SYMBOL,
+        portfolio=PORTFOLIO,
+        interval=INTERVAL,
+        lags=LAGS,
         client=client,
         indicators=[
             sma9_21_indicator,
             # rsi_indicator,
         ],
-        stop_limit_percentage=stop_limit_percentage,
-        stop_loss_percentage=stop_loss_percentage,
-        refresh_frequency=refresh_frequency,
+        stop_limit_percentage=STOP_LIMIT_PERCENTAGE,
+        stop_loss_percentage=STOP_LOSS_PERCENTAGE,
+        refresh_frequency=REFRESH_FREQUENCY,
     )
 
     #########################################################
@@ -87,8 +88,8 @@ if __name__ == "__main__":
     #########################################################
     market_data_history = load_market_data_history(
         client,
-        symbol,
-        refresh_frequency,
+        SYMBOL,
+        REFRESH_FREQUENCY,
         history_start_timestamp,
         history_stop_timestamp,
     )
