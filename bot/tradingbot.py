@@ -273,9 +273,10 @@ class TradingBot:
         """
         # TODO: Use the client to quit position
         self.update_trade_reporting()
-        self.current_state._quit_position(
-            current_time=self.df.CloseDate.iloc[-1],
-            current_price=self.df.Close.iloc[-1],
+        self.current_state._update_position(
+            new_position=Position.NONE,
+            new_time=self.df.CloseDate.iloc[-1],
+            new_price=self.df.Close.iloc[-1],
         )
 
     def update_trade_reporting(self):
