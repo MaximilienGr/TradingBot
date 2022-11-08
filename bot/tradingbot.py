@@ -8,7 +8,7 @@ from bot.indicators.indicator import Indicator
 from bot.logging_formatter import logger
 
 
-class MarketData:
+class TradingBot:
     """
     Main class. This class contains the parameters of the bot: state, market-parameters, dataframe.
     """
@@ -21,7 +21,6 @@ class MarketData:
         symbol="BTCUSDT",
         portfolio=1000,
         interval=Client.KLINE_INTERVAL_4HOUR,
-        lags=5,
         client=None,
         indicators=None,
         stop_limit_percentage=1,
@@ -33,7 +32,6 @@ class MarketData:
         self.interval = interval
         self.start_str = start_str
         self.end_str = end_str
-        self.lags = lags
         self.client = client
         self.indicators: list[Indicator] = indicators
         self.stop_limit_percentage = stop_limit_percentage
@@ -273,7 +271,6 @@ class MarketData:
         Quit the current position and updates the reporting DataFrame
         :return:
         """
-        # if self.current_state.position is
         # TODO: Use the client to quit position
         self.update_trade_reporting()
         self.current_state._quit_position(
@@ -318,7 +315,13 @@ class MarketData:
             [self.trades_reporting, trade_details], ignore_index=True
         )
 
-    def _get_extremum_between_range(self, x1, x2):
+    def _get_extremum_between_range(self, x1, x2) -> [int, int]:
+        """
+        Return the extremum between two dates
+        :param x1: first timestamp
+        :param x2: second timestamp
+        :return:  list of two extremums
+        """
         ymin = self.df.loc[
             self.df["CloseDate"].between(
                 left=Timestamp(x1),

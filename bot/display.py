@@ -2,8 +2,10 @@ from dash import Output, Input, State, dash_table, dcc, html, Dash
 from pandas import Timestamp
 import plotly.graph_objects as go
 
+from bot.tradingbot import TradingBot
 
-def setup_dash(market_data):
+
+def setup_dash(trading_bot: TradingBot):
     legend = dict(xanchor="left", yanchor="top", orientation="h", y=0.99, x=0.01)
     trading_reporting_columns = [
         "EntryTime",
@@ -17,16 +19,16 @@ def setup_dash(market_data):
     data = [
         # Candlesticks
         go.Candlestick(
-            x=market_data.df["CloseDate"],
-            open=market_data.df["Open"],
-            high=market_data.df["High"],
-            low=market_data.df["Low"],
-            close=market_data.df["Close"],
+            x=trading_bot.df["CloseDate"],
+            open=trading_bot.df["Open"],
+            high=trading_bot.df["High"],
+            low=trading_bot.df["Low"],
+            close=trading_bot.df["Close"],
         ),
         # Green arrow up located at (time, price) for long signals
         go.Scatter(
-            x=market_data.df["CloseDate"][market_data.df["LongSignal"] == 1],
-            y=market_data.df["Close"][market_data.df["LongSignal"] == 1],
+            x=trading_bot.df["CloseDate"][trading_bot.df["LongSignal"] == 1],
+            y=trading_bot.df["Close"][trading_bot.df["LongSignal"] == 1],
             mode="markers",
             marker_symbol="arrow-up",
             marker_size=10,
@@ -35,8 +37,8 @@ def setup_dash(market_data):
         ),
         # Red arrow down located at (time, price) for short signals
         go.Scatter(
-            x=market_data.df["CloseDate"][market_data.df["ShortSignal"] == 1],
-            y=market_data.df["Close"][market_data.df["ShortSignal"] == 1],
+            x=trading_bot.df["CloseDate"][trading_bot.df["ShortSignal"] == 1],
+            y=trading_bot.df["Close"][trading_bot.df["ShortSignal"] == 1],
             mode="markers",
             marker_symbol="arrow-down",
             marker_size=10,
@@ -45,8 +47,8 @@ def setup_dash(market_data):
         ),
         # Green cross located at (time, price) for long positions
         go.Scatter(
-            x=market_data.df["CloseDate"][market_data.df["LongPosition"] == 1],
-            y=market_data.df["PositionPrice"][market_data.df["LongPosition"] == 1],
+            x=trading_bot.df["CloseDate"][trading_bot.df["LongPosition"] == 1],
+            y=trading_bot.df["PositionPrice"][trading_bot.df["LongPosition"] == 1],
             mode="markers",
             marker_symbol="x",
             marker_size=10,
@@ -55,8 +57,8 @@ def setup_dash(market_data):
         ),
         # Red cross located at (time, price) for short positions
         go.Scatter(
-            x=market_data.df["CloseDate"][market_data.df["ShortPosition"] == 1],
-            y=market_data.df["PositionPrice"][market_data.df["ShortPosition"] == 1],
+            x=trading_bot.df["CloseDate"][trading_bot.df["ShortPosition"] == 1],
+            y=trading_bot.df["PositionPrice"][trading_bot.df["ShortPosition"] == 1],
             mode="markers",
             marker_symbol="x",
             marker_size=10,
@@ -65,12 +67,12 @@ def setup_dash(market_data):
         ),
     ]
     childrens_graphs = []
-    for i in market_data.indicators:
+    for i in trading_bot.indicators:
         # Adding the data of each indicator in the main graph
-        for scatter in i.get_plot_scatters_for_main_graph(market_data.df):
+        for scatter in i.get_plot_scatters_for_main_graph(trading_bot.df):
             data.append(scatter)
         # Adding each indicator's plot in the dashboard
-        if (indicator_graph := i.get_indicator_graph(market_data.df)) is not None:
+        if (indicator_graph := i.get_indicator_graph(trading_bot.df)) is not None:
             childrens_graphs.append(indicator_graph)
 
     graph_candlestick = go.Figure(
@@ -89,7 +91,7 @@ def setup_dash(market_data):
             go.Table(
                 header=dict(values=trading_reporting_columns),
                 cells=dict(
-                    values=market_data.trades_reporting[trading_reporting_columns]
+                    values=trading_bot.trades_reporting[trading_reporting_columns]
                     .transpose()
                     .values.tolist(),
                     fill_color="lavender",
@@ -159,7 +161,7 @@ def setup_dash(market_data):
         elif "xaxis.range[0]" in relOut.keys():
 
             ### Updating the x/y axis for the Candlestick graph
-            Fig["layout"]["yaxis"]["range"] = market_data._get_extremum_between_range(
+            Fig["layout"]["yaxis"]["range"] = trading_bot._get_extremum_between_range(
                 x1=Timestamp(relOut["xaxis.range[0]"]),
                 x2=Timestamp(relOut["xaxis.range[1]"]),
             )
@@ -174,9 +176,9 @@ def setup_dash(market_data):
                 ]
 
             ### Updating the x/y boundaries for the Reporting table
-            df = market_data.trades_reporting[
-                (market_data.trades_reporting.EntryTime > relOut["xaxis.range[0]"])
-                & (market_data.trades_reporting.ExitTime < relOut["xaxis.range[1]"])
+            df = trading_bot.trades_reporting[
+                (trading_bot.trades_reporting.EntryTime > relOut["xaxis.range[0]"])
+                & (trading_bot.trades_reporting.ExitTime < relOut["xaxis.range[1]"])
             ][trading_reporting_columns]
             tradeReportingFig["data"] = [
                 go.Table(
@@ -195,7 +197,7 @@ def setup_dash(market_data):
             for plot in my_args:
                 plot["layout"]["xaxis"]["autorange"] = True
                 plot["layout"]["yaxis"]["autorange"] = True
-            df = market_data.trades_reporting[trading_reporting_columns]
+            df = trading_bot.trades_reporting[trading_reporting_columns]
             tradeReportingFig["data"] = [
                 go.Table(
                     header=dict(values=list(df.columns)),

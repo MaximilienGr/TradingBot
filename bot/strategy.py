@@ -1,9 +1,12 @@
-def strategy_testing(market_data):
-    market_data.update_data()
-    market_data.get_indicators_signals()
-    if market_data.should_quit():
-        market_data.quit_position()
-    if market_data.should_long():
-        market_data.long()
-    elif market_data.should_short():
-        market_data.short()
+from bot.tradingbot import TradingBot
+
+
+def strategy_testing(trading_bot: TradingBot):
+    trading_bot.update_data()
+    trading_bot.get_indicators_signals()
+    if trading_bot.should_quit():
+        trading_bot.quit_position()
+    if trading_bot.should_long():
+        trading_bot.long()
+    elif trading_bot.should_short():
+        trading_bot.short()

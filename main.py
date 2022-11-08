@@ -10,7 +10,7 @@ from bot.helpers.utils import (
 
 # from bot.indicators.rsi_indicator import RsiIndicator
 from bot.logging_formatter import logger
-from bot.marketdata import MarketData
+from bot.tradingbot import TradingBot
 from bot.client.mock_client import MockClient
 from bot.strategy import strategy_testing
 
@@ -32,8 +32,6 @@ if __name__ == "__main__":
     #########################################################
     # Which pair you want to trade
     SYMBOL = "BTCUSDT"
-    # Number of delay windows allowed to trigger a buy according to the stochastic indicator
-    LAGS = 3
     # Money initially invested
     PORTFOLIO = 1000
     # Losing percentage admitted before quiting position. 0.05 == 5%
@@ -48,8 +46,8 @@ if __name__ == "__main__":
     #                  Time parameters parameters           #
     #########################################################
     # Candle size
-    INTERVAL = Client.KLINE_INTERVAL_1HOUR
-    REFRESH_FREQUENCY = Client.KLINE_INTERVAL_1HOUR
+    INTERVAL = Client.KLINE_INTERVAL_1DAY
+    REFRESH_FREQUENCY = Client.KLINE_INTERVAL_1DAY
     simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00 GMT")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
     simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 00:00:00 GMT")
@@ -66,13 +64,12 @@ if __name__ == "__main__":
     #########################################################
     #  Main object. Containing all the data and decisions   #
     #########################################################
-    simu_market_data = MarketData(
+    simu_trading_bot = TradingBot(
         start_str=simu_market_start_timestamp,
         end_str=simu_market_stop_timestamp,
         symbol=SYMBOL,
         portfolio=PORTFOLIO,
         interval=INTERVAL,
-        lags=LAGS,
         client=client,
         indicators=[
             sma9_21_indicator,
@@ -94,24 +91,13 @@ if __name__ == "__main__":
         history_stop_timestamp,
     )
     mock_client = MockClient(market_data_history=market_data_history)
-    simu_market_data.df.isClosed = True
-    simu_market_data.client = mock_client
+    simu_trading_bot.df.isClosed = True
+    simu_trading_bot.client = mock_client
 
     while len(market_data_history) > 1:
-        strategy_testing(market_data=simu_market_data)
-
-    #########################################################
-    #           Checking that we don't have done            #
-    #           as mush of Long as of Short                 #
-    #########################################################
-    assert (
-        abs(
-            simu_market_data.df["LongPosition"].sum()
-            - simu_market_data.df["ShortPosition"].sum()
-        )
-    ) in [0, 1], "Buy/Sell mismatch O_o"
+        strategy_testing(trading_bot=simu_trading_bot)
 
     #########################################################
     #     Setting up dash server for Graphical analyse      #
     #########################################################
-    setup_dash(simu_market_data)
+    setup_dash(simu_trading_bot)
