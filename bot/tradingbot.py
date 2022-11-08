@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import pandas as pd
 from binance import Client
 from pandas import Timestamp
@@ -302,6 +305,11 @@ class TradingBot:
         ]
         trade_details = pd.DataFrame(
             data={
+                "Open": [self.df.Open.iloc[-1]],
+                "High": [self.df.High.iloc[-1]],
+                "Low": [self.df.Low.iloc[-1]],
+                "Close": [self.df.Close.iloc[-1]],
+                "Volume": [self.df.Volume.iloc[-1]],
                 "EntryTime": [self.current_state.time.round(freq="T")],
                 "EntryPrice": [self.current_state.price],
                 "Position": [self.current_state.position.name],
@@ -316,7 +324,14 @@ class TradingBot:
             [self.trades_reporting, trade_details], ignore_index=True
         )
 
-    def _get_extremum_between_range(self, x1, x2) -> [int, int]:
+    def save_trading_reporting_as_csv(self):
+        filepath = Path(
+            f"./data/trading_history/{self.start_str}-{self.end_str}-{self.interval}-history.csv"
+        )
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        self.trades_reporting.to_csv(filepath, index=False)
+
+    def _get_extremum_between_range(self, x1, x2) -> [float, float]:
         """
         Return the extremum between two dates
         :param x1: first timestamp

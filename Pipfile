@@ -8,13 +8,16 @@ requests = "*"
 ta = "*"
 pandas = "*"
 numpy = "*"
-matplotlib.pyplot = "*"
+sklearn = "*"
+matplotlib = {pyplot = "*"}
 python-binance = "*"
 datetime = "*"
 IPython = "*"
 mplcursors = "*"
 plotly = "*"
 dash = "*"
+scikit-learn = "*"
+scipy = "*"
 
 [dev-packages]
 black = "*"

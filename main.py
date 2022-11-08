@@ -46,8 +46,8 @@ if __name__ == "__main__":
     #                  Time parameters parameters           #
     #########################################################
     # Candle size
-    INTERVAL = Client.KLINE_INTERVAL_1DAY
-    REFRESH_FREQUENCY = Client.KLINE_INTERVAL_1DAY
+    INTERVAL = Client.KLINE_INTERVAL_4HOUR
+    REFRESH_FREQUENCY = Client.KLINE_INTERVAL_4HOUR
     simu_market_start_timestamp = date_to_mili_timestamp("03.01.2022 00:00:00 GMT")
     # WARNING, you need at least 33 iterations between the beginning and the end for MACD
     simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 00:00:00 GMT")
@@ -96,6 +96,11 @@ if __name__ == "__main__":
 
     while len(market_data_history) > 1:
         strategy_testing(trading_bot=simu_trading_bot)
+
+    #########################################################
+    #         Dumping as CSV the history of all trades      #
+    #########################################################
+    simu_trading_bot.save_trading_reporting_as_csv()
 
     #########################################################
     #     Setting up dash server for Graphical analyse      #
