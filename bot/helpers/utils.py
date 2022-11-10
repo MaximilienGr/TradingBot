@@ -2,6 +2,7 @@ import ast
 import os
 import random
 import re
+from pathlib import Path
 from dateutil import parser
 
 import csv
@@ -11,6 +12,7 @@ from bot.logging_formatter import logger
 
 def save_list_as_csv(start_str, end_str, interval, list):
     history_path = f"./data/market_data/{start_str}-{end_str}-{interval}-history.csv"
+    Path(history_path).parent.mkdir(parents=True, exist_ok=True)
     if not os.path.exists(history_path):
         with open(history_path, "w") as fp:
             wr = csv.writer(fp, delimiter="\n")
@@ -21,6 +23,7 @@ def load_market_data_history(
     client, symbol, refresh_frequency, history_start_timestamp, history_stop_timestamp
 ):
     history_path = f"./data/market_data/{history_start_timestamp}-{history_stop_timestamp}-{refresh_frequency}-history"
+    Path(history_path).parent.mkdir(parents=True, exist_ok=True)
     if os.path.exists(history_path):
         logger.info("::Loading:: market_data_history from local storage")
         market_data_history = []
