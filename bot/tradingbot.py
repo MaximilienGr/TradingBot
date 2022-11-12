@@ -1,9 +1,9 @@
-import os
 from pathlib import Path
+from typing import Optional
 
 import pandas as pd
 from binance import Client
-from pandas import Timestamp
+from pandas import DataFrame, Timestamp
 
 from bot.helpers.utils import interval_to_mili_timestamp, merge_candles
 from bot.indicators.indicator import Indicator
@@ -18,17 +18,17 @@ class TradingBot:
 
     def __init__(
         self,
-        start_str,
-        end_str,
-        data=None,
-        symbol="BTCUSDT",
-        portfolio=1000,
-        interval=Client.KLINE_INTERVAL_4HOUR,
-        client=None,
-        indicators=None,
-        stop_limit_percentage=1,
-        stop_loss_percentage=0.05,
-        refresh_frequency=Client.KLINE_INTERVAL_1HOUR,
+        start_str: str,
+        end_str: str,
+        data: Optional[DataFrame] = None,
+        symbol: str = "BTCUSDT",
+        portfolio: int = 1000,
+        interval: str = Client.KLINE_INTERVAL_4HOUR,
+        client: Optional[Client] = None,
+        indicators: Optional[list[Indicator]] = None,
+        stop_limit_percentage: int = 1,
+        stop_loss_percentage: float = 0.05,
+        refresh_frequency: str = Client.KLINE_INTERVAL_1HOUR,
     ):
         self.current_state = BotState(portfolio=portfolio)
         self.symbol = symbol
@@ -36,7 +36,7 @@ class TradingBot:
         self.start_str = start_str
         self.end_str = end_str
         self.client = client
-        self.indicators: list[Indicator] = indicators
+        self.indicators = indicators or []
         self.stop_limit_percentage = stop_limit_percentage
         self.stop_loss_percentage = stop_loss_percentage
         self.refresh_frequency = refresh_frequency
@@ -98,7 +98,7 @@ class TradingBot:
         """
         match self.current_state.position:
             case Position.NONE:
-                pass
+                return
             case Position.SHORT:
                 # StopLoss to stop bleeding in short positions
                 last_short_position_price = self.current_state.price
@@ -331,12 +331,12 @@ class TradingBot:
         filepath.parent.mkdir(parents=True, exist_ok=True)
         self.trades_reporting.to_csv(filepath, index=False)
 
-    def _get_extremum_between_range(self, x1, x2) -> [float, float]:
+    def _get_extremum_between_range(self, x1, x2) -> tuple[float, float]:
         """
         Return the extremum between two dates
         :param x1: first timestamp
         :param x2: second timestamp
-        :return:  list of two extremums
+        :return:  tuple of two extremums
         """
         ymin = self.df.loc[
             self.df["CloseDate"].between(
@@ -354,4 +354,4 @@ class TradingBot:
             ),
             "High",
         ].max()
-        return [ymin, ymax]
+        return (ymin, ymax)

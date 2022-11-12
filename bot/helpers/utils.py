@@ -4,9 +4,11 @@ import os
 import random
 import re
 from collections import deque
+from pathlib import Path
 
 import numpy as np
 from dateutil import parser
+from pandas import DataFrame
 from scipy.signal import argrelextrema
 
 from bot.logging_formatter import logger
@@ -16,6 +18,7 @@ from .types import ExtremaDirection, ExtremaType
 
 def save_list_as_csv(start_str, end_str, interval, list):
     history_path = f"./data/market_data/{start_str}-{end_str}-{interval}-history.csv"
+    Path(history_path).parent.mkdir(parents=True, exist_ok=True)
     if not os.path.exists(history_path):
         with open(history_path, "w") as fp:
             wr = csv.writer(fp, delimiter="\n")
@@ -26,6 +29,7 @@ def load_market_data_history(
     client, symbol, refresh_frequency, history_start_timestamp, history_stop_timestamp
 ):
     history_path = f"./data/market_data/{history_start_timestamp}-{history_stop_timestamp}-{refresh_frequency}-history"
+    Path(history_path).parent.mkdir(parents=True, exist_ok=True)
     if os.path.exists(history_path):
         logger.info("::Loading:: market_data_history from local storage")
         market_data_history = []
@@ -99,19 +103,20 @@ def merge_candles(old_candle, new_candle):
     )
     return old_candle
 
+
 def get_extrema(
-    df: np.array,
+    df: DataFrame,
     order: int = 5,
     K: int = 2,
     extrema_direction: ExtremaDirection = ExtremaDirection.HIGHER,
-    extrema_type : ExtremaType = ExtremaType.HIGHS
+    extrema_type: ExtremaType = ExtremaType.HIGHS,
 ):
-    '''
+    """
     Finds consecutive peaks in price pattern.
-    Must not be exceeded within the number of periods indicated by the width 
+    Must not be exceeded within the number of periods indicated by the width
     parameter for the value to be confirmed.
     K determines how many consecutive peaks need to be higher/lower.
-    '''
+    """
     # Get extremas
     np_method = np.greater if extrema_type == ExtremaType.HIGHS else np.less
     extrema_idx = argrelextrema(df, np_method, order=order)[0]
@@ -119,7 +124,7 @@ def get_extrema(
 
     # Ensure consecutive highs are higher than previous highs
     extrema = []
-    ex_deque = deque(maxlen=K)
+    ex_deque: deque = deque(maxlen=K)
 
     for i, idx in enumerate(extrema_idx):
         if i == 0:
@@ -127,18 +132,21 @@ def get_extrema(
             continue
 
         if (
-            (extremas[i] < extremas[i-1] and extrema_direction == ExtremaDirection.HIGHER) or
-            (extremas[i] > extremas[i-1] and extrema_direction == ExtremaDirection.LOWER)
+            extremas[i] < extremas[i - 1]
+            and extrema_direction == ExtremaDirection.HIGHER
+        ) or (
+            extremas[i] > extremas[i - 1]
+            and extrema_direction == ExtremaDirection.LOWER
         ):
             ex_deque.clear()
-        
+
         ex_deque.append(idx)
         if len(ex_deque) == K:
             extrema.append(ex_deque.copy())
-    
+
     return extrema
 
 
-def get_extrema_index(df: np.array, extrema, order: int = 5) -> list:
+def get_extrema_index(df: DataFrame, extrema: list, order: int = 5) -> list:
     idx = np.array([i[-1] + order for i in extrema])
-    return idx[np.where(idx<len(df))]
+    return idx[np.where(idx < len(df))]

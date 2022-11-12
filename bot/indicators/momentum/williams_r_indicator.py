@@ -13,8 +13,8 @@ class WilliamsRIndicator(Indicator):
 
     def should_long(self, df) -> bool:
         # TODO: implement
-        pass
+        return False
 
     def should_short(self, df) -> bool:
         # TODO: implement
-        pass
+        return False

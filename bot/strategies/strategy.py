@@ -16,22 +16,22 @@ class Strategy:
     def is_location_bullish(self) -> bool:
         # if fibonacci_indicator should long
         # and sma_indicator should long
-        pass
+        return False
 
     def is_location_bearish(self):
         # LOCATION
         # if fibonacci_indicator should short
         # and sma_indicator should short
-        pass
+        return False
 
     def is_momentum_bullish(self) -> bool:
-        pass
+        return False
 
     def is_momentum_bearish(self) -> bool:
-        pass
+        return False
 
     def is_structure_bullish(self) -> bool:
-        pass
+        return False
 
     def is_structure_bearish(self) -> bool:
-        pass
+        return False

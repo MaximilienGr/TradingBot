@@ -85,4 +85,4 @@ class Sma9_21Indicator(Indicator):
         ]
 
     def get_indicator_graph(self, df):
-        pass
+        return

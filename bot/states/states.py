@@ -27,7 +27,7 @@ class BotState(BaseModel):
     def _quit_position(self, current_time, current_price):
         match self.position:
             case Position.NONE:
-                pass
+                return
             case Position.SHORT | Position.LONG:
                 logger.debug(
                     f"Quitting {self.position.name} position at {current_price} ({current_time})"

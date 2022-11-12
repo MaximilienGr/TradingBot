@@ -15,20 +15,20 @@ class VolumeProfileIndicator(Indicator):
         # TODO: implement
         # if market is trending down and self.is_on_high_volume_node
         # return true
-        return self.is_in_low_value_area()
+        return self.is_in_low_value_area(df)
 
     def should_short(self, df) -> bool:
         # TODO: implement
         # if market is trending up and self.is_on_high_volume_node
         # return true
-        return self.is_in_high_value_are()
+        return self.is_in_high_value_are(df)
 
     def is_in_high_value_are(self, df) -> bool:
-        pass
+        return False
 
     def is_in_low_value_area(self, df) -> bool:
-        pass
+        return False
 
     def is_on_high_volume_node(self, df) -> bool:
         # return true if price 10% below or above HVN
-        pass
+        return False

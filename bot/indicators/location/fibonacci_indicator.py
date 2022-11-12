@@ -15,9 +15,9 @@ class FibonacciIndicator(Indicator):
         return df
 
     @property
-    def levels(self) -> tuple(float):
+    def levels(self) -> tuple:
         # TODO: implement
-        pass
+        return tuple()
 
     def should_long(self, df) -> bool:
         # TODO: implement
@@ -25,7 +25,7 @@ class FibonacciIndicator(Indicator):
         # if self.is_in_reload_zone
         # or if self.is_in_garage_zone
         # return true
-        pass
+        return False
 
     def should_short(self, df) -> bool:
         # TODO: implement
@@ -33,23 +33,23 @@ class FibonacciIndicator(Indicator):
         # if self.is_in_reload_zone
         # or if self.is_in_garage_zone
         # return true
-        pass
+        return False
 
     def should_quit(self, df, position) -> bool:
         # return true if price crosses level 1, 5 or 6
-        pass
+        return False
 
     def is_in_ranging_zone(self, df) -> bool:
         # TODO: implement
         # return true if price is between level 1 and 2
-        pass
+        return False
 
     def is_in_reload_zone(self, df) -> bool:
         # TODO: implement
         # return true if price is between level 2 and 3
-        pass
+        return False
 
     def is_in_garage_zone(self, df) -> bool:
         # TODO: implement
         # return true if price is between level 2 and 3
-        pass
+        return False

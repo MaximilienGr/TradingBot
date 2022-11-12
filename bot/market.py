@@ -1,9 +1,4 @@
-from bot.indicators.trend.adx_indicator import ADXIndicator
-
-
 class Market:
-    adx = ADXIndicator()
-
     @property
     def is_bullish(self):
         # TODO; implement

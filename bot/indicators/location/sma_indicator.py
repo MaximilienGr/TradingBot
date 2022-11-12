@@ -6,7 +6,7 @@ from bot.indicators.indicator import Indicator
 
 
 class SmaIndicator(Indicator):
-    type = IndicatorType.LOCATION.name
+    type = IndicatorType.LOCATION
 
     def __init__(self, value, **kwargs):
         self.value = value
@@ -33,13 +33,13 @@ class SmaIndicator(Indicator):
         if self.value != 200:
             return False
         # return true if price is equal or above sma200
-        pass
+        return False
 
     def is_below_sma200(self, df) -> bool:
         if self.value != 200:
             return False
         # return true if price is equal or below sma200
-        pass
+        return False
 
     def get_plot_scatters_for_main_graph(self, df) -> list[go.Scatter]:
         return [
@@ -54,4 +54,4 @@ class SmaIndicator(Indicator):
         ]
 
     def get_indicator_graph(self, df):
-        pass
+        return

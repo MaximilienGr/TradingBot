@@ -11,7 +11,7 @@ class ADXIndicator(Indicator):
         df[("indicators", "ADX")] = trend.ADXIndicator(df.High, df.Low, df.Close)
         return df
 
-    def is_trending(self, df):
+    def is_trending(self, df) -> bool:
         # return true if adx > 25
         # else false
-        pass
+        return False

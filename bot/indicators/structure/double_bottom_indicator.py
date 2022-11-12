@@ -6,8 +6,7 @@ class DoubleBottomIndicator(Indicator):
     type = IndicatorType.STRUCTURE
 
     def set_indicator(self, df):
-
-        pass
+        return
 
     def should_long(self, df) -> bool:
-        pass
+        return False

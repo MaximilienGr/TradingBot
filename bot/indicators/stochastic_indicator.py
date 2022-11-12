@@ -3,10 +3,13 @@ import pandas as pd
 from plotly.graph_objs import Scatter
 from ta import momentum
 
+from bot.helpers.types import IndicatorType
 from bot.indicators.indicator import Indicator
 
 
 class StochasticIndicator(Indicator):
+    type = IndicatorType.MOMENTUM_OSCILLATOR
+
     def __init__(self, lags, stoch_window, stoch_smooth_window, stoch_limits, **kwargs):
         super().__init__(**kwargs)
         self.lags = lags
@@ -101,4 +104,4 @@ class StochasticIndicator(Indicator):
         return []
 
     def get_indicator_graph(self, df):
-        pass
+        return

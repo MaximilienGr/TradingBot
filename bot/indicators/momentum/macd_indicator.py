@@ -40,4 +40,4 @@ class MACDIndicator(Indicator):
         return []
 
     def get_indicator_graph(self, df):
-        pass
+        return
