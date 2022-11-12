@@ -1,10 +1,13 @@
-from ta import trend
 from plotly.graph_objs import Scatter
+from ta import trend
 
+from bot.helpers.types import IndicatorType
 from bot.indicators.indicator import Indicator
 
 
-class MacdIndicator(Indicator):
+class MACDIndicator(Indicator):
+    type = IndicatorType.MOMENTUM_OSCILLATOR
+
     def __init__(self, macd_window_slow, macd_window_fast, macd_window_sign, **kwargs):
         super().__init__(**kwargs)
         self.macd_window_slow = macd_window_slow

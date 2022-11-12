@@ -1,11 +1,15 @@
 from abc import ABC, abstractmethod
 
+from dash import dcc
 from pandas import DataFrame
 from plotly.graph_objects import Scatter
-from dash import dcc
+
+from bot.helpers.types import IndicatorType
 
 
 class Indicator(ABC):
+    type: IndicatorType | None = None
+
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
 

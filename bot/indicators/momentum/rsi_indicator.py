@@ -1,11 +1,14 @@
-from ta import momentum
-from dash import dcc
 import plotly.express as px
+from dash import dcc
+from ta import momentum
 
+from bot.helpers.types import IndicatorType
 from bot.indicators.indicator import Indicator
 
 
-class RsiIndicator(Indicator):
+class RSIIndicator(Indicator):
+    type = IndicatorType.MOMENTUM_OSCILLATOR
+
     def __init__(
         self, rsi_window=14, rsi_long_trigger=30, rsi_short_trigger=70, **kwargs
     ):
