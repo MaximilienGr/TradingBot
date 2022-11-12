@@ -2,9 +2,9 @@ import pandas as pd
 from binance import Client
 
 from bot.helpers.utils import (
-    merge_candles,
-    interval_to_mili_timestamp,
     date_to_mili_timestamp,
+    interval_to_mili_timestamp,
+    merge_candles,
 )
 
 

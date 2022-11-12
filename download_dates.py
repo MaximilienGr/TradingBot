@@ -1,10 +1,11 @@
 import os
 
 from binance.client import Client
+
 from bot.helpers.utils import (
-    save_list_as_csv,
     date_to_mili_timestamp,
     interval_to_mili_timestamp,
+    save_list_as_csv,
 )
 from bot.logging_formatter import logger
 

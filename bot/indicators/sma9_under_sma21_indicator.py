@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 
-from bot.indicators.indicator import Indicator
 from bot.helpers.utils import get_random_color
+from bot.indicators.indicator import Indicator
 from bot.states.states import Position
 
 

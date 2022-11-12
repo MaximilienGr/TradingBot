@@ -6,9 +6,9 @@ from binance import Client
 from pandas import Timestamp
 
 from bot.helpers.utils import interval_to_mili_timestamp, merge_candles
-from bot.states.states import Position, BotState
 from bot.indicators.indicator import Indicator
 from bot.logging_formatter import logger
+from bot.states.states import BotState, Position
 
 
 class TradingBot:

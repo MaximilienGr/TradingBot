@@ -2,20 +2,15 @@ import os
 
 from binance.client import Client
 
+from bot.client.mock_client import MockClient
 from bot.display import setup_dash
-from bot.helpers.utils import (
-    load_market_data_history,
-    date_to_mili_timestamp,
-)
+from bot.helpers.utils import date_to_mili_timestamp, load_market_data_history
+from bot.indicators.sma9_under_sma21_indicator import Sma9_21Indicator
 
 # from bot.indicators.rsi_indicator import RsiIndicator
 from bot.logging_formatter import logger
-from bot.tradingbot import TradingBot
-from bot.client.mock_client import MockClient
 from bot.strategy import strategy_testing
-
-from bot.indicators.sma9_under_sma21_indicator import Sma9_21Indicator
-
+from bot.tradingbot import TradingBot
 
 if __name__ == "__main__":
     logger.warning("Let's start dat shit: warning")  # yellow

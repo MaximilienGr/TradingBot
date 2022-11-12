@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from ta import momentum
 from plotly.graph_objs import Scatter
+from ta import momentum
 
 from bot.indicators.indicator import Indicator
 

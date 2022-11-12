@@ -1,6 +1,6 @@
-from dash import Output, Input, State, dash_table, dcc, html, Dash
-from pandas import Timestamp
 import plotly.graph_objects as go
+from dash import Dash, Input, Output, State, dash_table, dcc, html
+from pandas import Timestamp
 
 from bot.tradingbot import TradingBot
 
