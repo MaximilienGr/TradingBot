@@ -1,7 +1,8 @@
 import plotly.graph_objects as go
-from dash import Dash, Input, Output, State, dash_table, dcc, html
+from dash import Dash, Input, Output, State, dcc, html
 from pandas import Timestamp
 
+from bot.helpers.utils import get_extremum_between_range
 from bot.tradingbot import TradingBot
 
 
@@ -161,7 +162,8 @@ def setup_dash(trading_bot: TradingBot):
         elif "xaxis.range[0]" in relOut.keys():
 
             ### Updating the x/y axis for the Candlestick graph
-            Fig["layout"]["yaxis"]["range"] = trading_bot._get_extremum_between_range(
+            Fig["layout"]["yaxis"]["range"] = get_extremum_between_range(
+                df=trading_bot.df,
                 x1=Timestamp(relOut["xaxis.range[0]"]),
                 x2=Timestamp(relOut["xaxis.range[1]"]),
             )

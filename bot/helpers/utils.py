@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 from dateutil import parser
-from pandas import DataFrame
+from pandas import DataFrame, Timestamp
 from scipy.signal import argrelextrema
 
 from bot.logging_formatter import logger
@@ -150,3 +150,32 @@ def get_extrema(
 def get_extrema_index(df: DataFrame, extrema: list, order: int = 5) -> list:
     idx = np.array([i[-1] + order for i in extrema])
     return idx[np.where(idx < len(df))]
+
+
+def get_extremum_between_range(df, x1, x2) -> tuple[float, float]:
+    """
+    Return the extremum between two dates
+    :param x1: first timestamp
+    :param x2: second timestamp
+    :return:  tuple of two extremums
+    """
+    if x1 > x2:
+        x1, x2 = x2, x1
+
+    ymin = df.loc[
+        df["CloseDate"].between(
+            left=Timestamp(x1),
+            right=Timestamp(x2),
+            inclusive="neither",
+        ),
+        "Low",
+    ].min()
+    ymax = df.loc[
+        df["CloseDate"].between(
+            left=Timestamp(x1),
+            right=Timestamp(x2),
+            inclusive="neither",
+        ),
+        "High",
+    ].max()
+    return (ymin, ymax)

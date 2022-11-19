@@ -3,7 +3,7 @@ from typing import Optional
 
 import pandas as pd
 from binance import Client
-from pandas import DataFrame, Timestamp
+from pandas import DataFrame
 
 from bot.helpers.utils import interval_to_mili_timestamp, merge_candles
 from bot.indicators.indicator import Indicator
@@ -330,28 +330,3 @@ class TradingBot:
         )
         filepath.parent.mkdir(parents=True, exist_ok=True)
         self.trades_reporting.to_csv(filepath, index=False)
-
-    def _get_extremum_between_range(self, x1, x2) -> tuple[float, float]:
-        """
-        Return the extremum between two dates
-        :param x1: first timestamp
-        :param x2: second timestamp
-        :return:  tuple of two extremums
-        """
-        ymin = self.df.loc[
-            self.df["CloseDate"].between(
-                left=Timestamp(x1),
-                right=Timestamp(x2),
-                inclusive="neither",
-            ),
-            "Low",
-        ].min()
-        ymax = self.df.loc[
-            self.df["CloseDate"].between(
-                left=Timestamp(x1),
-                right=Timestamp(x2),
-                inclusive="neither",
-            ),
-            "High",
-        ].max()
-        return (ymin, ymax)
