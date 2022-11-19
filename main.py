@@ -5,9 +5,7 @@ from binance.client import Client
 from bot.client.mock_client import MockClient
 from bot.display import setup_dash
 from bot.helpers.utils import date_to_mili_timestamp, load_market_data_history
-from bot.indicators.sma9_under_sma21_indicator import Sma9_21Indicator
-
-# from bot.indicators.rsi_indicator import RsiIndicator
+from bot.indicators.momentum.rsi_indicator import RSIIndicator
 from bot.logging_formatter import logger
 from bot.strategy import strategy_testing
 from bot.tradingbot import TradingBot
@@ -53,8 +51,7 @@ if __name__ == "__main__":
     #########################################################
     #    All indicator that will be used to decide          #
     #########################################################
-    sma9_21_indicator = Sma9_21Indicator()
-    # rsi_indicator = RsiIndicator()
+    rsi_indicator = RSIIndicator()
 
     #########################################################
     #  Main object. Containing all the data and decisions   #
@@ -67,8 +64,7 @@ if __name__ == "__main__":
         interval=INTERVAL,
         client=client,
         indicators=[
-            sma9_21_indicator,
-            # rsi_indicator,
+            rsi_indicator,
         ],
         stop_limit_percentage=STOP_LIMIT_PERCENTAGE,
         stop_loss_percentage=STOP_LOSS_PERCENTAGE,

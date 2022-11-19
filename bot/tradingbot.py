@@ -165,6 +165,7 @@ class TradingBot:
                     "ShortSignal",  # Signal for a Short position
                     "LongPosition",  # When True, means that a long position has been set
                     "ShortPosition",  # When True, means that a short position has been set
+                    "QuitPosition",  # When True, means that a position has been quitted
                     "isClosed",  # When True, means that the current candle is closed
                 ]
             ] = False
@@ -275,6 +276,8 @@ class TradingBot:
         :return:
         """
         # TODO: Use the client to quit position
+        self.df.loc[self.df.index[-1], "QuitPosition"] = True
+        self.df.at[self.df.index[-1], "PositionPrice"] = self.df.Close.iloc[-1]
         self.update_trade_reporting()
         self.current_state._update_position(
             new_position=Position.NONE,

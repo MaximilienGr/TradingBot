@@ -4,6 +4,7 @@ from ta import momentum
 
 from bot.helpers.types import IndicatorType
 from bot.indicators.indicator import Indicator
+from bot.states.states import Position
 
 
 class RSIIndicator(Indicator):
@@ -18,27 +19,51 @@ class RSIIndicator(Indicator):
         self.rsi_short_trigger = rsi_short_trigger
 
     def set_indicator(self, df):
-        # TODO: pourquoi les premières valeurs sont à 0 ? Avant c'était des NaN
         df[("indicators", "RSI")] = momentum.rsi(df.Close, window=self.rsi_window)
+        df[("RSI", "RSI_oversold_trigger")] = (
+            df[("indicators", "RSI")] <= self.rsi_long_trigger
+        )
+        df[("RSI", "RSI_overbought_trigger")] = (
+            df[("indicators", "RSI")] >= self.rsi_short_trigger
+        )
         return df
 
     def should_long(self, df):
-        return True
-        # if df[("indicators", "RSI")].iloc[-1] > self.rsi_buying_trigger:
-        #     return True
-        # return False
+        if (
+            df[("RSI", "RSI_oversold_trigger")].iloc[-2]
+            and not df[("RSI", "RSI_oversold_trigger")].iloc[-1]
+        ):
+            return True
+        return False
 
     def should_short(self, df):
-        return True
-        # if df[("indicators", "RSI")].iloc[-1] > self.rsi_selling_trigger:
-        #     return True
-        # return False
+        if (
+            df[("RSI", "RSI_overbought_trigger")].iloc[-2]
+            and not df[("RSI", "RSI_overbought_trigger")].iloc[-1]
+        ):
+            return True
+        return False
 
     def should_quit(self, df, position):
-        return False
-        # if df[("indicators", "RSI")].iloc[-1] > self.rsi_selling_trigger:
-        #     return True
-        # return False
+        match position:
+            case Position.NONE:
+                return False
+            case Position.LONG:
+                if (
+                    not df[("RSI", "RSI_overbought_trigger")].iloc[-2]
+                    and df[("RSI", "RSI_overbought_trigger")].iloc[-1]
+                ):
+                    return True
+                return False
+            case Position.SHORT:
+                if (
+                    not df[("RSI", "RSI_oversold_trigger")].iloc[-2]
+                    and df[("RSI", "RSI_oversold_trigger")].iloc[-1]
+                ):
+                    return True
+                return False
+            case _:
+                return False
 
     def get_plot_scatters_for_main_graph(self, df):
         return []

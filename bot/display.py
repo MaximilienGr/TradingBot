@@ -66,6 +66,17 @@ def setup_dash(trading_bot: TradingBot):
             marker_color="red",
             name="ShortPosition position",
         ),
+        # Black dot located at (time, price) for quitting positions
+        go.Scatter(
+            x=trading_bot.df["CloseDate"][trading_bot.df["QuitPosition"] == 1],
+            y=trading_bot.df["PositionPrice"][trading_bot.df["QuitPosition"] == 1],
+            mode="markers",
+            marker_symbol="circle-dot",
+            opacity=0.5,
+            marker_size=8,
+            marker_color="black",
+            name="Position quitted",
+        ),
     ]
     childrens_graphs = []
     for i in trading_bot.indicators:
