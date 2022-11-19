@@ -5,7 +5,11 @@ import pandas as pd
 from binance import Client
 from pandas import DataFrame
 
-from bot.helpers.utils import interval_to_mili_timestamp, merge_candles
+from bot.helpers.utils import (
+    get_extremum_between_range,
+    interval_to_mili_timestamp,
+    merge_candles,
+)
 from bot.indicators.indicator import Indicator
 from bot.logging_formatter import logger
 from bot.states.states import BotState, Position
@@ -306,6 +310,15 @@ class TradingBot:
         indicators_columns.columns = [
             column[1] for column in indicators_columns.columns
         ]
+
+        # Calculation of MaxDrawDown
+        (ymin, ymax) = get_extremum_between_range(
+            df=self.df,
+            x1=self.current_state.time.round(freq="T"),
+            x2=self.df.CloseDate.iloc[-1].round(freq="T"),
+        )
+        max_draw_down = (ymax - ymin) / ymax
+
         trade_details = pd.DataFrame(
             data={
                 "Open": [self.df.Open.iloc[-1]],
@@ -318,6 +331,7 @@ class TradingBot:
                 "Position": [self.current_state.position.name],
                 "ExitPrice": [current_price],
                 "ExitTime": [self.df.CloseDate.iloc[-1].round(freq="T")],
+                "MaxDrawDown": [max_draw_down],
                 "Variation": [variation],
                 "Portfolio": [self.current_state.portfolio],
             }

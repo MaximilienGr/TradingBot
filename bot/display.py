@@ -14,6 +14,7 @@ def setup_dash(trading_bot: TradingBot):
         "Position",
         "ExitPrice",
         "ExitTime",
+        "MaxDrawDown",
         "Variation",
         "Portfolio",
     ]
