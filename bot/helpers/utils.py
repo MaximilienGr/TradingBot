@@ -1,5 +1,6 @@
 import ast
 import csv
+import logging
 import os
 import random
 import re
@@ -10,8 +11,6 @@ import numpy as np
 from dateutil import parser
 from pandas import DataFrame, Timestamp
 from scipy.signal import argrelextrema
-
-from bot.logging_formatter import logger
 
 from .types import ExtremaDirection, ExtremaType
 
@@ -31,7 +30,7 @@ def load_market_data_history(
     history_path = f"./data/market_data/{history_start_timestamp}-{history_stop_timestamp}-{refresh_frequency}-history"
     Path(history_path).parent.mkdir(parents=True, exist_ok=True)
     if os.path.exists(history_path):
-        logger.info("::Loading:: market_data_history from local storage")
+        logging.info("::Loading:: market_data_history from local storage")
         market_data_history = []
         # open file and read the content in a list
         with open(history_path, "r") as fp:
@@ -41,7 +40,7 @@ def load_market_data_history(
                 # add current item to the list
                 market_data_history.append(ast.literal_eval(x))
     else:
-        logger.info("::Loading:: market_data_history from client")
+        logging.info("::Loading:: market_data_history from client")
         market_data_history = client.get_historical_klines(
             symbol=symbol,
             interval=refresh_frequency,
@@ -72,7 +71,7 @@ def interval_to_mili_timestamp(interval):
         case [number, "w"]:
             return 60000 * 60 * 24 * 7 * int(number)
         case [number, "M"]:
-            logger.warning(
+            logging.warning(
                 "Watchout with the intervals... Interval for months are not very precise ? 30d ? 31d ?"
             )
             return 60000 * 60 * 24 * 7 * 30 * int(number)
@@ -179,3 +178,19 @@ def get_extremum_between_range(df, x1, x2) -> tuple[float, float]:
         "High",
     ].max()
     return (ymin, ymax)
+
+
+def _ansi_style(value: str, *styles: str) -> str:
+    codes = {
+        "bold": 1,
+        "red": 31,
+        "green": 32,
+        "yellow": 33,
+        "magenta": 35,
+        "cyan": 36,
+    }
+
+    for style in styles:
+        value = f"\x1b[{codes[style]}m{value}"
+
+    return f"{value}\x1b[0m"

@@ -1,3 +1,4 @@
+import logging
 import os
 
 from binance.client import Client
@@ -7,7 +8,6 @@ from bot.helpers.utils import (
     interval_to_mili_timestamp,
     save_list_as_csv,
 )
-from bot.logging_formatter import logger
 
 if __name__ == "__main__":
     binance_api_key = os.environ["BINANCE_API_KEY"]
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     start_str = "01.03.2019 00:00:00"
     end_str = "20.09.2022 00:00:00"
 
-    logger.debug(
+    logging.debug(
         f"Loading data between {start_str} and {end_str} for {symbol} with interval {interval}"
     )
 

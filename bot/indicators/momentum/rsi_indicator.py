@@ -1,3 +1,5 @@
+import logging
+
 import plotly.express as px
 from dash import dcc
 from ta import momentum
@@ -14,33 +16,42 @@ class RSIIndicator(Indicator):
         self, rsi_window=14, rsi_long_trigger=30, rsi_short_trigger=70, **kwargs
     ):
         super().__init__(**kwargs)
+        self.logger = logging.getLogger(__name__)
         self.rsi_window = rsi_window
         self.rsi_long_trigger = rsi_long_trigger
         self.rsi_short_trigger = rsi_short_trigger
 
     def set_indicator(self, df):
         df[("indicators", "RSI")] = momentum.rsi(df.Close, window=self.rsi_window)
-        df[("RSI", "RSI_oversold_trigger")] = (
+        df[("indicators", "RSI_oversold_trigger")] = (
             df[("indicators", "RSI")] <= self.rsi_long_trigger
         )
-        df[("RSI", "RSI_overbought_trigger")] = (
+        df[("indicators", "RSI_overbought_trigger")] = (
             df[("indicators", "RSI")] >= self.rsi_short_trigger
         )
         return df
 
     def should_long(self, df):
         if (
-            df[("RSI", "RSI_oversold_trigger")].iloc[-2]
-            and not df[("RSI", "RSI_oversold_trigger")].iloc[-1]
+            df[("indicators", "RSI_oversold_trigger")].iloc[-2]
+            and not df[("indicators", "RSI_oversold_trigger")].iloc[-1]
         ):
+            self.logger.debug(
+                f"ShouldLong because RSI was {round(df[('indicators', 'RSI')].iloc[-2], 2)}"
+                f" and is now {round(df[('indicators', 'RSI')].iloc[-1], 2)}"
+            )
             return True
         return False
 
     def should_short(self, df):
         if (
-            df[("RSI", "RSI_overbought_trigger")].iloc[-2]
-            and not df[("RSI", "RSI_overbought_trigger")].iloc[-1]
+            df[("indicators", "RSI_overbought_trigger")].iloc[-2]
+            and not df[("indicators", "RSI_overbought_trigger")].iloc[-1]
         ):
+            self.logger.debug(
+                f"ShouldShort because RSI was {round(df[('indicators', 'RSI')].iloc[-2], 2)}"
+                f" and is now {round(df[('indicators', 'RSI')].iloc[-1], 2)}"
+            )
             return True
         return False
 
@@ -50,16 +61,24 @@ class RSIIndicator(Indicator):
                 return False
             case Position.LONG:
                 if (
-                    not df[("RSI", "RSI_overbought_trigger")].iloc[-2]
-                    and df[("RSI", "RSI_overbought_trigger")].iloc[-1]
+                    not df[("indicators", "RSI_overbought_trigger")].iloc[-2]
+                    and df[("indicators", "RSI_overbought_trigger")].iloc[-1]
                 ):
+                    self.logger.debug(
+                        f"ShouldQuit LongPosition because RSI was {round(df[('indicators', 'RSI')].iloc[-2], 2)}"
+                        f" and is now {round(df[('indicators', 'RSI')].iloc[-1], 2)}"
+                    )
                     return True
                 return False
             case Position.SHORT:
                 if (
-                    not df[("RSI", "RSI_oversold_trigger")].iloc[-2]
-                    and df[("RSI", "RSI_oversold_trigger")].iloc[-1]
+                    not df[("indicators", "RSI_oversold_trigger")].iloc[-2]
+                    and df[("indicators", "RSI_oversold_trigger")].iloc[-1]
                 ):
+                    self.logger.debug(
+                        f"ShouldQuit ShortPosition because RSI was {round(df[('indicators', 'RSI')].iloc[-2], 2)}"
+                        f" and is now {round(df[('indicators', 'RSI')].iloc[-1], 2)}"
+                    )
                     return True
                 return False
             case _:

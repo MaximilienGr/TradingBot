@@ -1,21 +1,18 @@
+import logging
 import os
 
 from binance.client import Client
 
 from bot.client.mock_client import MockClient
+from bot.config import Config
 from bot.display import setup_dash
 from bot.helpers.utils import date_to_mili_timestamp, load_market_data_history
 from bot.indicators.momentum.rsi_indicator import RSIIndicator
-from bot.logging_formatter import logger
 from bot.strategy import strategy_testing
 from bot.tradingbot import TradingBot
 
 if __name__ == "__main__":
-    logger.warning("Let's start dat shit: warning")  # yellow
-    logger.debug("Let's start dat shit: debug")  # pruple
-    logger.info("Let's start dat shit: info")  # green
-    logger.error("Let's start dat shit: error")  # red
-
+    Config.setup_config()
     binance_api_key = os.environ["BINANCE_API_KEY"]
     binance_secret_key = os.environ["BINANCE_SECRET_KEY"]
     client = Client(binance_api_key, binance_secret_key)
@@ -32,8 +29,8 @@ if __name__ == "__main__":
     # Maximum wining percentage admitted before quiting position 1 == 100%
     STOP_LIMIT_PERCENTAGE = 1
 
-    logger.info("Trading %s", SYMBOL)  # yellow
-    logger.info("Initial investment %s", PORTFOLIO)  # yellow
+    logging.info("Trading %s", SYMBOL)  # yellow
+    logging.info("Initial investment %s", PORTFOLIO)  # yellow
 
     #########################################################
     #                  Time parameters parameters           #
@@ -46,7 +43,7 @@ if __name__ == "__main__":
     simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 00:00:00 GMT")
 
     history_start_timestamp = simu_market_stop_timestamp
-    history_stop_timestamp = date_to_mili_timestamp("26.09.2022 18:00:00")
+    history_stop_timestamp = date_to_mili_timestamp("22.02.2022 18:00:00")
 
     #########################################################
     #    All indicator that will be used to decide          #

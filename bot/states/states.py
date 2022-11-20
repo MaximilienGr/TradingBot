@@ -1,9 +1,8 @@
+import logging
 from enum import Enum
 
 import pandas as pd
 from pydantic import BaseModel
-
-from bot.logging_formatter import logger
 
 
 class Position(Enum):
@@ -29,7 +28,7 @@ class BotState(BaseModel):
             case Position.NONE:
                 return
             case Position.SHORT | Position.LONG:
-                logger.debug(
+                logging.debug(
                     f"Quitting {self.position.name} position at {current_price} ({current_time})"
                 )
                 variation = self.get_variation(current_price)
@@ -71,5 +70,5 @@ class BotState(BaseModel):
                 self.price = new_price
                 self.time = new_time
             case _:
-                logger.error("O_o Wtf is the current state o_O")
+                logging.error("O_o Wtf is the current state o_O")
                 raise Exception

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 from typing import Optional
 
@@ -11,7 +12,6 @@ from bot.helpers.utils import (
     merge_candles,
 )
 from bot.indicators.indicator import Indicator
-from bot.logging_formatter import logger
 from bot.states.states import BotState, Position
 
 
@@ -114,8 +114,8 @@ class TradingBot:
                 ] <= last_short_position_price * (1 - self.stop_limit_percentage)
                 # For indicators saying True, if one of the stops is True return False
                 if stop_loss_activated or stop_limit_activated:
-                    logger.debug(
-                        f"Stop activated for {self.current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
+                    logging.debug(
+                        f"StopLoss activated for {self.current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
                     )
                     return True
             case Position.LONG:
@@ -129,8 +129,8 @@ class TradingBot:
                 ] >= last_long_position_price * (1 + self.stop_limit_percentage)
                 # For indicators saying True, if one of the stops is True return False
                 if stop_loss_activated or stop_limit_activated:
-                    logger.debug(
-                        f"Stop activated for {self.current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})   "
+                    logging.debug(
+                        f"StopLoss activated for {self.current_state.position.name} position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})   "
                     )
                     return True
         return False
@@ -140,7 +140,7 @@ class TradingBot:
         :param start_str : Timestamp to start fetching data from.
         :param end_str: Timestamp to stop fetching data from"""
         try:
-            # logger.debug(f"[Fetching data] {pd.Timestamp(start_str * 1000000)} -> {pd.Timestamp(end_str * 1000000)}")
+            # logging.debug(f"[Fetching data] {pd.Timestamp(start_str * 1000000)} -> {pd.Timestamp(end_str * 1000000)}")
 
             frame = pd.DataFrame(
                 self.client.get_historical_klines(
@@ -177,7 +177,7 @@ class TradingBot:
             frame["CloseDate"] = pd.to_datetime(frame["CloseTime"], unit="ms")
             return frame
         except Exception as err:
-            logger.error(err)
+            logging.error(err)
 
     def update_data(self):
         """
@@ -244,7 +244,7 @@ class TradingBot:
             raise Exception("Trying to Long while position not quitted properly")
 
         # TODO: Use the client to go long position
-        logger.info(
+        logging.debug(
             f"Taking LONG position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
         )
         self.df.at[self.df.index[-1], "LongPosition"] = True
@@ -263,7 +263,7 @@ class TradingBot:
         if self.current_state.position != Position.NONE:
             raise Exception("Trying to Long while position not quitted properly")
         # TODO: Use the client to go short position
-        logger.info(
+        logging.debug(
             f"Taking SHORT position at {self.df.Close.iloc[-1]} ({self.df.CloseDate.iloc[-1]})"
         )
         self.df.at[self.df.index[-1], "ShortPosition"] = True
@@ -333,7 +333,7 @@ class TradingBot:
                 "ExitTime": [self.df.CloseDate.iloc[-1].round(freq="T")],
                 "MaxDrawDown": [max_draw_down],
                 "Variation": [variation],
-                "Portfolio": [self.current_state.portfolio],
+                "Portfolio": [self.current_state.portfolio * (1 + variation / 100)],
             }
             | indicators_columns.iloc[-1].to_dict()
         )
