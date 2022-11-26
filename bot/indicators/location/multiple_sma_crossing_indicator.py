@@ -13,6 +13,7 @@ class Sma9_21Indicator(Indicator):
         df[("indicators", "SMA9")] = df["Close"].rolling(10).mean()
         df[("indicators", "SMA21")] = df["Close"].rolling(20).mean()
 
+        # This part is about adding extra data, for ML (?)
         df[("indicators", "dSMA9")] = (
             df[("indicators", "SMA9")] - df[("indicators", "SMA9")].shift(1)
         ) / (df["CloseTime"] - df["CloseTime"].shift(1))

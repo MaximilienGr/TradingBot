@@ -224,16 +224,16 @@ class TradingBot:
         All the indicators sending True are needed to buy to have
         """
         # TODO: Ponderation entre les indicateurs
-        should_buy = True
+        should_long = True
         for indicator in self.indicators:
-            should_buy = indicator.should_long(df=self.df) and should_buy
+            should_long = indicator.should_long(df=self.df) and should_long
 
-        should_sell = True
+        should_short = True
         for indicator in self.indicators:
-            should_sell = indicator.should_short(df=self.df) and should_sell
+            should_short = indicator.should_short(df=self.df) and should_short
 
-        self.df.loc[self.df.index[-1], "LongSignal"] = should_buy
-        self.df.loc[self.df.index[-1], "ShortSignal"] = should_sell
+        self.df.loc[self.df.index[-1], "LongSignal"] = should_long
+        self.df.loc[self.df.index[-1], "ShortSignal"] = should_short
 
     def long(self):
         """
