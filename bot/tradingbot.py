@@ -342,8 +342,9 @@ class TradingBot:
         )
 
     def save_trading_reporting_as_csv(self):
+        indicators = "-".join([i.__class__.__name__ for i in self.indicators])
         filepath = Path(
-            f"./data/trading_history/{self.start_str}-{self.end_str}-{self.interval}-history.csv"
+            f"./data/trading_history/{indicators}/{self.start_str}-{self.end_str}-{self.interval}-history.csv"
         )
         filepath.parent.mkdir(parents=True, exist_ok=True)
         self.trades_reporting.to_csv(filepath, index=False)

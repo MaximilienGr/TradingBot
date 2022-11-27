@@ -7,7 +7,7 @@ from bot.tradingbot import TradingBot
 
 
 def setup_dash(trading_bot: TradingBot):
-    legend = dict(xanchor="left", yanchor="top", orientation="h", y=0.99, x=0.01)
+    legend = dict(xanchor="left", yanchor="top", orientation="h", y=1.1, x=0.01)
     trading_reporting_columns = [
         "EntryTime",
         "EntryPrice",
@@ -95,7 +95,7 @@ def setup_dash(trading_bot: TradingBot):
             xaxis=dict(rangeslider_visible=False),
             yaxis=dict(autorange=True),
             legend=legend,
-            margin={"t": 0, "b": 0},
+            margin={"t": 50, "b": 0},
         ),
     )
 
