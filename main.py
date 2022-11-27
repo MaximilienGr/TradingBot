@@ -45,7 +45,7 @@ if __name__ == "__main__":
     simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 00:00:00 GMT")
 
     history_start_timestamp = simu_market_stop_timestamp
-    history_stop_timestamp = date_to_mili_timestamp("22.09.2022 18:00:00")
+    history_stop_timestamp = date_to_mili_timestamp("22.02.2022 18:00:00")
 
     #########################################################
     #    All indicator that will be used to decide          #

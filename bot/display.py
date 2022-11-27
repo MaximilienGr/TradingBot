@@ -114,6 +114,30 @@ def setup_dash(trading_bot: TradingBot):
         ]
     )
 
+    entry_price = trading_bot.df.Close[
+        trading_bot.df.CloseTime <= trading_bot.end_str
+    ].iloc[-1]
+    last_price = trading_bot.df.Close.iloc[-1]
+    portfolio_performance = (
+        1 + trading_bot.trades_reporting.Variation / 100
+    ).prod() - 1
+
+    portfolio_vs_hodl = go.Figure(
+        data=[
+            go.Table(
+                header=dict(values=["Buy and Hold", "Portfolio"]),
+                cells=dict(
+                    values=[
+                        f"{round((last_price - entry_price) / entry_price, 4) * 100}%",
+                        f"{round(portfolio_performance, 4)*100}%",
+                    ],
+                    fill_color="lavender",
+                    align="left",
+                ),
+            )
+        ]
+    )
+
     ################################################################################################
     #                    Here to make the vertical scaling automatic when zooming                  #
     ################################################################################################
@@ -128,7 +152,7 @@ def setup_dash(trading_bot: TradingBot):
                         id="graph_candlestick",
                         figure=graph_candlestick,
                         style=dict(
-                            height=500,
+                            height="100%",
                         ),
                     )
                 ]
@@ -138,7 +162,16 @@ def setup_dash(trading_bot: TradingBot):
                         id="trade_reporting",
                         figure=trade_reporting,
                         style=dict(
-                            height=500,
+                            height="100%",
+                        ),
+                    )
+                ]
+                + [
+                    dcc.Graph(
+                        id="portfolio_vs_hodl",
+                        figure=portfolio_vs_hodl,
+                        style=dict(
+                            height="100%",
                         ),
                     )
                 ]
