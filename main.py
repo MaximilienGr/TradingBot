@@ -7,8 +7,8 @@ from bot.client.mock_client import MockClient
 from bot.config import Config
 from bot.display import setup_dash
 from bot.helpers.utils import date_to_mili_timestamp, load_market_data_history
-from bot.indicators.location.crossing_sma_indicator import CrossingSmaIndicator
-from bot.indicators.location.sma_indicator import SMAIndicator
+from bot.indicators.location.crossing_ma_indicator import CrossingMaIndicator
+from bot.indicators.location.ma_indicator import MAIndicator
 from bot.indicators.momentum.rsi_indicator import RSIIndicator
 from bot.strategy import strategy_testing
 from bot.tradingbot import TradingBot
@@ -45,14 +45,16 @@ if __name__ == "__main__":
     simu_market_stop_timestamp = date_to_mili_timestamp("09.02.2022 00:00:00 GMT")
 
     history_start_timestamp = simu_market_stop_timestamp
-    history_stop_timestamp = date_to_mili_timestamp("22.02.2022 18:00:00")
+    history_stop_timestamp = date_to_mili_timestamp("22.04.2022 18:00:00")
 
     #########################################################
     #    All indicator that will be used to decide          #
     #########################################################
     rsi_indicator = RSIIndicator()
-    sma_indicator = SMAIndicator(10)
-    crossing_sma_indicator = CrossingSmaIndicator(9, 21)
+    sma_indicator = MAIndicator("SMA", 10)
+    ema_indicator = MAIndicator("EMA", 10)
+    crossing_sma_indicator = CrossingMaIndicator("SMA", 9, 21)
+    crossing_ema_indicator = CrossingMaIndicator("EMA", 9, 21)
 
     #########################################################
     #  Main object. Containing all the data and decisions   #
@@ -67,7 +69,9 @@ if __name__ == "__main__":
         indicators=[
             # rsi_indicator,
             # sma_indicator,
-            crossing_sma_indicator
+            # ema_indicator,
+            # crossing_sma_indicator,
+            crossing_ema_indicator,
         ],
         stop_limit_percentage=STOP_LIMIT_PERCENTAGE,
         stop_loss_percentage=STOP_LOSS_PERCENTAGE,
