@@ -34,12 +34,19 @@ class MAIndicator(Indicator):
         return df
 
     def _add_additional_data(self, df):
+        # This part is about normalizing indicator with price
+        df[("indicators", "normalized_" + self.ma_name)] = (
+            df[("indicators", self.ma_name)] - df["Close"]
+        ) / df["Close"]
+
         # This part is about getting derivatives
-        df[("indicators", "d" + self.ma_name)] = (
-            df[("indicators", self.ma_name)].diff() / df["CloseTime"].diff()
+        df[("indicators", "d" + "normalized_" + self.ma_name)] = (
+            df[("indicators", "normalized_" + self.ma_name)].diff()
+            / df["CloseTime"].diff()
         )
-        df[("indicators", "dd" + self.ma_name)] = (
-            df[("indicators", "d" + self.ma_name)].diff() / df["CloseTime"].diff()
+        df[("indicators", "dd" + "normalized_" + self.ma_name)] = (
+            df[("indicators", "d" + "normalized_" + self.ma_name)].diff()
+            / df["CloseTime"].diff()
         )
 
     def should_long(self, df):
